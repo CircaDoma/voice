@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+  firebase.initializeApp(firebaseConfig);
+</script>
+
 <title>Voice Assistant Placement Trainer</title>
 <style>
   :root {
@@ -712,6 +719,25 @@
 <div class="room-tooltip" id="room-tooltip"></div>
 
 <script>
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDEpS0QyoiX5Y1fh35pSzjoIS-s4n4D3NY",
+  authDomain: "voice-session.firebaseapp.com",
+  databaseURL: "https://voice-session-default-rtdb.firebaseio.com",
+  projectId: "voice-session",
+  storageBucket: "voice-session.firebasestorage.app",
+  messagingSenderId: "578750056973",
+  appId: "1:578750056973:web:d36237cc85cfbd6409e344"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
 const SESSION_KEY = 'va_trainer_session_v1';
 const HEATMAP_KEY = 'va_trainer_heatmap_v1';
 
@@ -882,30 +908,28 @@ async function submitPlacement() {
     alert('Place at least one voice assistant before submitting.');
     return;
   }
-
   const submission = {
     sessionId,
     devices: myDevices.map(d => ({ x: Math.round(d.x), y: Math.round(d.y) })),
     timestamp: Date.now()
   };
-
   try {
-    const key = 'submission_' + sessionId + '_' + Date.now();
-    await window.storage.set(key, JSON.stringify(submission), true);
+    const db = firebase.database();
+    await db.ref('submissions/' + sessionId).set(submission);
     hasSubmitted = true;
     localStorage.setItem('va_submitted_' + sessionId, 'true');
     document.getElementById('submitted-banner').style.display = 'block';
     document.getElementById('submit-btn').disabled = true;
   } catch(e) {
     alert('Could not save — check your connection and try again.');
+    console.error(e);
   }
 }
 
-// ─── HEATMAP (FACILITATOR) ───────────────────────────────────────────────────
 async function refreshHeatmap() {
   try {
-    const result = await window.storage.list('submission_', true);
-    if (!result || !result.keys) return;
+    const db = firebase.database();
+    const snapshot = await db.ref('submissions').get();
 
     clearRenderedDevices();
     document.querySelectorAll('.heatmap-dot').forEach(el => el.remove());
@@ -914,18 +938,15 @@ async function refreshHeatmap() {
     let totalDevicesCount = 0;
     const submissions = [];
 
-    for (const key of result.keys) {
-      try {
-        const entry = await window.storage.get(key, true);
-        if (entry && entry.value) {
-          const data = JSON.parse(entry.value);
-          submissions.push(data);
-          data.devices.forEach(d => {
-            allDevices.push({ x: d.x, y: d.y });
-            totalDevicesCount++;
-          });
-        }
-      } catch(e) {}
+    if (snapshot.exists()) {
+      snapshot.forEach(child => {
+        const data = child.val();
+        submissions.push(data);
+        data.devices.forEach(d => {
+          allDevices.push({ x: d.x, y: d.y });
+          totalDevicesCount++;
+        });
+      });
     }
 
     const numSubmissions = submissions.length;
