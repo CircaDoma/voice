@@ -1022,12 +1022,8 @@ async function refreshHeatmap() {
 async function clearAllData() {
   if (!confirm('Clear ALL submissions for this session? This cannot be undone.')) return;
   try {
-    const result = await window.storage.list('submission_', true);
-    if (result && result.keys) {
-      for (const key of result.keys) {
-        await window.storage.delete(key, true);
-      }
-    }
+    const db = firebase.database();
+    await db.ref('submissions').remove();
     document.querySelectorAll('.heatmap-dot').forEach(el => el.remove());
     document.getElementById('count-num').textContent = '0';
     document.getElementById('stat-submissions').textContent = '0';
