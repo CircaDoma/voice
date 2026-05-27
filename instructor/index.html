@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Voice Session</title>
-<link rel="stylesheet" href="styles.css">
+<title>Voice Session - Instructor</title>
+<link rel="stylesheet" href="../styles.css">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="shared.js" defer></script>
-<script src="student.js" defer></script>
+<script src="../shared.js" defer></script>
+<script src="../instructor.js" defer></script>
 </head>
 <body>
 
@@ -18,7 +18,11 @@
     Voice Placement Trainer
   </div>
   <div class="header-actions">
-    <span class="mode-badge participant">Technician View</span>
+    <span class="participant-count" id="participant-count" style="display:flex">
+      <span class="count-dot"></span>
+      <span id="count-num">0</span> submissions
+    </span>
+    <span class="mode-badge facilitator">Facilitator View</span>
     <span style="font-size:12px; color:var(--muted);">
       Session <strong id="session-display" style="color:var(--text);">—</strong>
     </span>
@@ -27,21 +31,6 @@
 
 <div class="main">
   <div class="sidebar">
-    <div class="sidebar-section" id="tools-section">
-      <h3>Voice Assistants</h3>
-      <div class="device-token" draggable="true" id="va-token" ondragstart="onTokenDrag(event)">
-        <div class="token-icon va">🔊</div>
-        <div>
-          <div class="token-label">Voice Assistant</div>
-          <div class="token-sub">Drag to place</div>
-        </div>
-      </div>
-      <div class="submitted-banner" id="submitted-banner">
-        ✅ Placement submitted!<br>
-        <span style="font-size:11px; margin-top:4px; display:block;">Wait for the facilitator to reveal the group results.</span>
-      </div>
-    </div>
-
     <div class="sidebar-section" id="legend-section">
       <h3>Room Devices</h3>
       <div class="legend-item"><span class="legend-dot" style="background:#4f8ef7"></span> Smart lights</div>
@@ -55,14 +44,28 @@
       <div class="legend-item"><span class="legend-dot" style="background:#c084fc"></span> Smart blinds</div>
     </div>
 
-    <div class="sidebar-section" id="participant-actions">
-      <h3>Your Placement</h3>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-        <button class="btn primary" onclick="submitPlacement()" id="submit-btn">✓ Submit placement</button>
-        <button class="btn" onclick="clearMyDevices()">↺ Start over</button>
+    <div class="sidebar-section" id="stats-section">
+      <h3>Session Stats</h3>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-submissions">0</div>
+          <div class="stat-label">Submissions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-avg">0</div>
+          <div class="stat-label">Avg devices</div>
+        </div>
       </div>
-      <div class="facilitator-panel" style="margin-top:12px;">
-        Place voice assistants in rooms where people will regularly issue voice commands. Think about human presence, not just device locations.
+    </div>
+
+    <div class="sidebar-section" id="facilitator-controls">
+      <h3>Facilitator Controls</h3>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn primary" onclick="refreshHeatmap()">🔄 Refresh heatmap</button>
+        <button class="btn danger" onclick="clearAllData()">🗑 Clear all data</button>
+      </div>
+      <div class="facilitator-panel" style="margin-top:12px">
+        Heatmap shows density of device placements across all submissions. Darker = more techs placed a device there.
       </div>
     </div>
   </div>
@@ -83,11 +86,11 @@
           </pattern>
         </defs>
       </svg>
-      <img src="assets/plan 1-1.svg" alt="">
+      <img src="../assets/plan 1-1.svg" alt="">
     </div>
 
     <div class="instruction-bar" id="instruction-bar">
-      Drag a voice assistant from the sidebar and drop it into a room
+      Aggregate heatmap — darker areas = more participants placed a device there
     </div>
   </div>
 </div>
