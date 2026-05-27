@@ -13,56 +13,26 @@
 <body>
 
 <header>
-  <div class="logo">
-    <div class="logo-icon">🏠</div>
-    Voice Placement Trainer
-  </div>
   <div class="header-actions">
-    <span class="mode-badge participant">Technician View</span>
-    <span style="font-size:12px; color:var(--muted);">
-      Session <strong id="session-display" style="color:var(--text);">—</strong>
+    <span>
+      Session <strong id="session-display">—</strong>
     </span>
   </div>
 </header>
 
 <div class="main">
   <div class="sidebar">
-    <div class="sidebar-section" id="tools-section">
-      <h3>Voice Assistants</h3>
-      <div class="device-token" draggable="true" id="va-token" ondragstart="onTokenDrag(event)">
-        <div class="token-icon va">🔊</div>
-        <div>
-          <div class="token-label">Voice Assistant</div>
-          <div class="token-sub">Drag to place</div>
-        </div>
-      </div>
-      <div class="submitted-banner" id="submitted-banner">
-        ✅ Placement submitted!<br>
-        <span style="font-size:11px; margin-top:4px; display:block;">Wait for the facilitator to reveal the group results.</span>
-      </div>
-    </div>
-
-    <div class="sidebar-section" id="legend-section">
-      <h3>Room Devices</h3>
-      <div class="legend-item"><span class="legend-dot" style="background:#4f8ef7"></span> Smart lights</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#3ecf8e"></span> Smart plug</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> Thermostat</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#a78bfa"></span> Smart lock</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#f87171"></span> Smoke detector</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#60a5fa"></span> Ceiling fan</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#34d399"></span> Smart TV</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#fbbf24"></span> Coffee maker</div>
-      <div class="legend-item"><span class="legend-dot" style="background:#c084fc"></span> Smart blinds</div>
+    <div class="container">
+      <h1>Floorplan 1</h1>
+      <p>Drag the device to place it on the floorplan.</p>
+      <img src="assets/device-bank.svg" class="device-token" draggable="true" id="va-token" ondragstart="onTokenDrag(event)">
+      <div class="submitted-banner" id="submitted-banner">Placement submitted!</div>
     </div>
 
     <div class="sidebar-section" id="participant-actions">
-      <h3>Your Placement</h3>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-        <button class="btn primary" onclick="submitPlacement()" id="submit-btn">✓ Submit placement</button>
-        <button class="btn" onclick="clearMyDevices()">↺ Start over</button>
-      </div>
-      <div class="facilitator-panel" style="margin-top:12px;">
-        Place voice assistants in rooms where people will regularly issue voice commands. Think about human presence, not just device locations.
+      <div>
+        <button class="btn" onclick="clearMyDevices()">Undo</button>
+        <button class="btn primary" onclick="submitPlacement()" id="submit-btn">Submit</button>
       </div>
     </div>
   </div>
@@ -75,19 +45,10 @@
 
       <div class="drop-overlay" id="drop-overlay"></div>
 
-      <svg id="floorplan-svg" width="860" height="620" viewBox="0 0 860 620" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="floor-pattern" patternUnits="userSpaceOnUse" width="20" height="20">
-            <rect width="20" height="20" fill="#1a1d27"/>
-            <rect width="20" height="20" fill="rgba(255,255,255,0.012)"/>
-          </pattern>
-        </defs>
-      </svg>
-      <img src="assets/plan 1-1.svg" alt="">
-    </div>
-
-    <div class="instruction-bar" id="instruction-bar">
-      Drag a voice assistant from the sidebar and drop it into a room
+      <img id="floorplan-img" src="assets/floorplan-1.svg" 
+           width="860" height="620" 
+           draggable="false"
+           style="display:block;">
     </div>
   </div>
 </div>

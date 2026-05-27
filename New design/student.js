@@ -59,7 +59,7 @@ function renderDevice(id, x, y) {
   el.id = id;
   el.style.left = px.left + 'px';
   el.style.top = px.top + 'px';
-  el.innerHTML = '<img src="assets/device-icon.svg"><button class="remove-btn" onclick="removeDevice(\'' + id + '\')" title="Remove">×</button>';
+  el.innerHTML = '🔊<button class="remove-btn" onclick="removeDevice(\'' + id + '\')" title="Remove">×</button>';
   el.setAttribute('draggable', 'true');
 
   el.addEventListener('dragstart', (e) => {

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Session</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="shared.js" defer></script>
+  <script src="student.js" defer></script>
+</head>
+<body>
+  <main>
+    <div class="section toolBar">
+      <div class="container">
+        <h1>Floorplan 1</h1>
+        <p>Drag the device to place it on the floorplan.</p>
+        <img
+          id="device-token"
+          class="device-token"
+          src="assets/device-bank.svg"
+          alt="Voice assistant device — drag onto the floorplan"
+          draggable="true"
+          ondragstart="onTokenDrag(event)"
+        >
+      </div>
+    </div>  
+
+    <div class="section floorplan">
+      <!--
+        floorplan-container is the positioning context for placed devices
+        (they're absolutely positioned children, see renderDevice() in student.js).
+
+        ondragover / ondragleave / ondrop fire as the user drags the token over
+        the plan. ondrop calls onDrop(), which uses clientToSvg() to convert the
+        pointer position into the SVG viewBox coordinate system before storing.
+      -->
+      <div
+        id="floorplan-container"
+        class="container floorplan-container"
+        ondragover="onDragOver(event)"
+        ondragleave="onDragLeave(event)"
+        ondrop="onDrop(event)"
+      >
+        <!-- The plan itself, sized to the container -->
+        <img class="floorplan-image" src="assets/floorplan-1.svg" alt="Floorplan 1">
+
+        <!--
+          Invisible SVG overlay sitting on top of the floorplan image.
+          student.js's clientToSvg() and svgToContainerPx() helpers need a real
+          <svg> element with a viewBox to translate drop coordinates. The viewBox
+          (860 × 620) matches what student.js expects; adjust if your real plan
+          uses different stored coordinates.
+        -->
+        <svg
+          id="floorplan-svg"
+          class="floorplan-svg"
+          viewBox="0 0 860 620"
+          preserveAspectRatio="xMidYMid meet"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        ></svg>
+
+        <!--
+          Drop overlay — student.js toggles the 'active' class on dragover/leave
+          to give visual feedback. Position it over the floorplan via CSS.
+        -->
+        <div id="drop-overlay" class="drop-overlay"></div>
+      </div>
+    </div>
+
+    <!-- Bottom: submit -->
+    <div class="section submitBar">
+      <div class="container">
+        <button id="submit-btn" class="submit-btn" onclick="submitPlacement()">
+          Submit
+        </button>
+      </div>
+    </div>
+    <div id="submitted-banner" class="submitted-banner" style="display: none;">
+      Placement submitted.
+    </div>
+  </main>
+</body>
+</html>

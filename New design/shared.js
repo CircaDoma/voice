@@ -32,30 +32,27 @@ const sessionId = getOrCreateSession();
 // These helpers translate between client-space (drop events) and viewBox space,
 // and back to container CSS pixels for absolutely-positioned HTML overlays.
 
-// ─── COORDINATE HELPERS ─────────────────────────────────────────────────────
-// Stored device positions live in logical plan units (0..860 × 0..620),
-// matching the floorplan image's natural dimensions. Keeping a fixed logical
-// space means saved positions stay valid even if the displayed size changes.
-const PLAN_WIDTH = 860;
-const PLAN_HEIGHT = 620;
-
 function clientToSvg(clientX, clientY) {
-  const img = document.getElementById('floorplan-img');
-  const rect = img.getBoundingClientRect();
-  const x = (clientX - rect.left) * (PLAN_WIDTH / rect.width);
-  const y = (clientY - rect.top) * (PLAN_HEIGHT / rect.height);
+  const svg = document.getElementById('floorplan-svg');
+  const rect = svg.getBoundingClientRect();
+  const vbWidth = svg.viewBox.baseVal.width || svg.width.baseVal.value;
+  const vbHeight = svg.viewBox.baseVal.height || svg.height.baseVal.value;
+  const x = (clientX - rect.left) * (vbWidth / rect.width);
+  const y = (clientY - rect.top) * (vbHeight / rect.height);
   return { x, y };
 }
 
 function svgToContainerPx(x, y) {
-  const img = document.getElementById('floorplan-img');
-  const imgRect = img.getBoundingClientRect();
+  const svg = document.getElementById('floorplan-svg');
+  const svgRect = svg.getBoundingClientRect();
   const containerRect = document.getElementById('floorplan-container').getBoundingClientRect();
-  const scaleX = imgRect.width / PLAN_WIDTH;
-  const scaleY = imgRect.height / PLAN_HEIGHT;
-  // Img may be offset within the container (borders, sibling elements); account for that.
-  const offsetX = imgRect.left - containerRect.left;
-  const offsetY = imgRect.top - containerRect.top;
+  const vbWidth = svg.viewBox.baseVal.width || svg.width.baseVal.value;
+  const vbHeight = svg.viewBox.baseVal.height || svg.height.baseVal.value;
+  const scaleX = svgRect.width / vbWidth;
+  const scaleY = svgRect.height / vbHeight;
+  // SVG may be offset within the container (borders, sibling elements); account for that.
+  const offsetX = svgRect.left - containerRect.left;
+  const offsetY = svgRect.top - containerRect.top;
   return {
     left: offsetX + x * scaleX,
     top: offsetY + y * scaleY,
