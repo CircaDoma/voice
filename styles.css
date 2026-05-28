@@ -208,3 +208,54 @@ p {
   padding: 14px 24px;
   flex-shrink: 0;
 }
+
+@media (orientation: landscape) {
+  .main {
+    flex-direction: row;
+  }
+
+  .toolBar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 200px;
+    height: 100vh;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid #ffffff;
+  }
+
+  h1 {
+    text-align: right;
+  }
+
+  p {
+    margin: 1rem;
+    text-align: right;
+  }
+
+  .toolBar .container {
+    flex-direction: row;
+    border-bottom: none;
+    border-right: none;
+    width: 100%;
+    padding: 1rem 0;
+  }
+
+  .submitted-banner {
+    font-size: 11px;
+    padding: 8px 6px;
+    margin: 0 6px;
+  }
+
+  .canvas-area {
+    height: 100vh;
+    padding-top: 24px;
+    padding-left: 124px; /* toolbar width + a little breathing room */
+    padding-bottom: 24px;
+  }
+
+  .session-code {
+    display: none; /* or reposition — gets crowded in landscape */
+  }
+}
