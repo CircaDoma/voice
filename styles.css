@@ -5,8 +5,8 @@
   --color-gray:   #efefef;
   --color-transparent: transparent;
 
-  --font-sans:        "Nunito", "Inter", -apple-system, BlinkMacSystemFont,
-                      "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Nunito Sans", -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, sans-serif;
 
   /* Type scale (mobile-first) */
   --fs-xs:            0.75rem;
@@ -24,36 +24,44 @@
   --radius-full:      50%;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  background: mediumaquamarine;
+  font-family: var(--font-sans);
+  background: var(--color-black);
   color: var(--color-white);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+.main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  align-items: center;
+}
+
+h1 {
+  font-family: var(--font-sans);
+  font-size: var(--fs-lg);
+  margin: 0px;
+  font-weight: 500;
+}
+
+p {
+  margin: 0px 3rem 0px 3rem;
+  font-size: var(--fs-sm);
+  color: var(--color-gray);
+  font-weight: 100;
 }
 
 .btn {
   width: 44px;
   background-color: transparent;
   border: 0px;
-  font: var(--font-sans);
-  font-size: var(--fs-base);
-  font-weight: 300;
   visibility: hidden;
 }
 
 .btn.show {
   visibility: visible;
-}
-
-.main {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  align-items: center;
 }
 
 .toolBar {
@@ -66,17 +74,6 @@ body {
   width: 100%;
 }
 
-.toolBar::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;              /* start exactly at the toolbar's bottom edge */
-  height: 40px;          /* how far the fade extends downward */
-  background: linear-gradient(to bottom, var(--color-black), var(--color-transparent));
-  pointer-events: none;  /* never block drags/clicks underneath */
-}
-
 .toolBar,
 .submitBar {
   touch-action: none;
@@ -84,7 +81,10 @@ body {
 
 .toolBar .container {
   display: flex;
+  justify-content: center;
   gap: 1rem;
+  border-bottom: #ffffff 1px solid;
+  width: 70%;
 }
 
 .device-token {
@@ -170,31 +170,6 @@ body {
 }
 .placed-device:hover .remove-btn { display: flex; }
 
-.submitBar {
-  position: fixed;
-  bottom: 0px;
-  padding-bottom: 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 1;
-  background-color: var(--color-black);
-  width: 100%;
-}
-
-.submitBar::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 100%;
-  height: 40px;
-  background: linear-gradient(to top, var(--color-black), var(--color-transparent));
-  pointer-events: none;
-}
-
-
-
 .room-tooltip {
   position: fixed;
   background: var(--color-white);
@@ -206,12 +181,11 @@ body {
   pointer-events: none;
   z-index: 100;
   display: none;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
 .submitted-banner {
-  background: rgba(62,207,142,0.1);
-  border: 1px solid rgba(62,207,142,0.3);
+  background: var(--color-black);
+  border: 1px solid var(--color-gray);
   border-radius: 10px;
   padding: 12px;
   font-size: 13px;
