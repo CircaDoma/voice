@@ -17,15 +17,17 @@
 <!-- TOOLBAR AREA -->
   <div class="main">
     <div class="section toolBar">
-      <h1>Floorplan 1</h1>
-      <p>Drag the device to place it on the floorplan.</p>
+      <div class="textcontainer">
+        <h1>Floorplan 1</h1>
+        <p>Drag the device to place it on the floorplan.</p>
+      </div>
       <div class="container">
         <button class="btn" onclick="clearMyDevices()">
-          <img src="assets/reset.svg" alt="Restart">
+          <img src="assets/reset.svg" alt="Restart" draggable="false">
         </button>
         <img src="assets/device-bank.svg" class="device-token" id="va-token">
         <button class="btn" onclick="submitPlacement()">
-          <img src="assets/submit.svg" alt="Submit">
+          <img src="assets/submit.svg" alt="Submit" draggable="false">
         </button>
       </div>
       <div class="submitted-banner" id="submitted-banner">Placement submitted!</div>

@@ -272,6 +272,8 @@ initZoom();
 const activePointers = new Map();
 let pinchStartDist = null;
 let pinchStartZoom = 1;
+let pinchFocalX = 0;
+let pinchFocalY = 0;
 
 function pointerDist() {
   const pts = [...activePointers.values()];
@@ -295,6 +297,14 @@ function onZoomPointerDown(e) {
     }
     pinchStartDist = pointerDist();
     pinchStartZoom = zoomLevel;
+
+    // Capture focal point once at pinch start
+    const pts = [...activePointers.values()];
+    const midX = (pts[0].x + pts[1].x) / 2;
+    const midY = (pts[0].y + pts[1].y) / 2;
+    const focal = clientToCanvas(midX, midY);
+    pinchFocalX = focal.x;
+    pinchFocalY = focal.y;
   }
 }
 
@@ -304,13 +314,9 @@ function onZoomPointerMove(e) {
 
   if (activePointers.size === 2 && pinchStartDist) {
     e.preventDefault();
-    const pts = [...activePointers.values()];
-    const midX = (pts[0].x + pts[1].x) / 2;
-    const midY = (pts[0].y + pts[1].y) / 2;
-    const { x, y } = clientToCanvas(midX, midY);
     const dist = pointerDist();
     const ratio = dist / pinchStartDist;
-    zoomAt(x, y, pinchStartZoom * ratio);
+    zoomAt(pinchFocalX, pinchFocalY, pinchStartZoom * ratio);
   }
 }
 

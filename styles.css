@@ -44,15 +44,18 @@ body {
   width: 100%;
 }
 
+.textcontainer {
+  margin: 0px 3rem 0px 3rem;
+  text-align: center;
+}
+
 h1 {
   font-family: var(--font-sans);
   font-size: var(--fs-lg);
-  margin: 0px;
   font-weight: 500;
 }
 
 p {
-  margin: 0px 3rem 0px 3rem;
   font-size: var(--fs-sm);
   color: var(--color-gray);
   font-weight: 100;
@@ -176,6 +179,13 @@ p {
 }
 .placed-device:hover .remove-btn { display: flex; }
 
+.remove-btn {
+  border: 1px solid var(--color-gray);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
 .room-tooltip {
   position: fixed;
   background: var(--color-white);
@@ -225,12 +235,11 @@ p {
     border-right: 1px solid #ffffff;
   }
 
-  h1 {
-    text-align: right;
-  }
-
-  p {
+  .textcontainer {
     margin: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     text-align: right;
   }
 
@@ -258,4 +267,8 @@ p {
   .session-code {
     display: none; /* or reposition — gets crowded in landscape */
   }
+}
+
+@media (min-width: 1500px) {
+  
 }
