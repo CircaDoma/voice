@@ -219,7 +219,7 @@ p {
   flex-shrink: 0;
 }
 
-@media (orientation: landscape) {
+@media (orientation: landscape) and (max-height: 600px) {
   .main {
     flex-direction: row;
   }
@@ -231,8 +231,8 @@ p {
     width: 200px;
     height: 100vh;
     flex-direction: column;
-    justify-content: center;
     border-right: 1px solid #ffffff;
+    padding-top: 1rem;
   }
 
   .textcontainer {
@@ -240,7 +240,7 @@ p {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    text-align: right;
+    text-align: center;
   }
 
   .toolBar .container {
@@ -269,6 +269,8 @@ p {
   }
 }
 
-@media (min-width: 1500px) {
-  
+@media (min-width: 400px) {
+  .textcontainer {
+    padding-top: 2rem;
+  }
 }

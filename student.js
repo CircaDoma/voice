@@ -408,6 +408,13 @@ function fitFloorplan() {
   applyZoom();
 }
 
+// Re-fit the floorplan whenever orientation changes (portrait <-> landscape).
+// Resets zoom/pan back to the fitted position for the new orientation.
+window.matchMedia("(orientation: landscape)").addEventListener("change", () => {
+  // Wait a frame so the browser finishes the reflow before we measure.
+  requestAnimationFrame(fitFloorplan);
+});
+
 initSourceToken();
 loadMyDevices();
 fitFloorplan();
