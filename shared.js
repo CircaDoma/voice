@@ -26,11 +26,19 @@ const sessionId = getOrCreateSession();
 
 // ─── COORDINATE HELPERS ─────────────────────────────────────────────────────
 // Stored device positions live in a fixed logical space (0..860 × 0..620),
-// matching the floorplan image's natural dimensions.
+// matching the floorplan image's NATURAL (untransformed) dimensions.
+//
+// The floorplan container carries a CSS transform: translate(pan) scale(zoom).
+// Placed devices are children of that container, so they inherit the transform
+// automatically. That means devices must be positioned in raw logical units —
+// the transform does all the scaling/panning. Do NOT apply scale here too, or
+// it gets applied twice (the "offset up-and-left" bug).
 const PLAN_WIDTH = 860;
 const PLAN_HEIGHT = 620;
 
 // Screen/pointer position → logical plan units.
+// img.getBoundingClientRect() reflects the POST-transform size/position, so
+// dividing by it maps a screen point back into the image's 0..PLAN space.
 function clientToSvg(clientX, clientY) {
   const img = document.getElementById('floorplan-img');
   const rect = img.getBoundingClientRect();
@@ -39,19 +47,12 @@ function clientToSvg(clientX, clientY) {
   return { x, y };
 }
 
-// Logical plan units → CSS pixels relative to the container.
+// Logical plan units → position inside the (untransformed) container.
+// The image sits at its natural 860×620 size at the container's origin before
+// any transform, so logical units map 1:1 to container-local pixels. The
+// container's own CSS transform then scales/pans the device along with the image.
 function svgToContainerPx(x, y) {
-  const img = document.getElementById('floorplan-img');
-  const imgRect = img.getBoundingClientRect();
-  const containerRect = document.getElementById('floorplan-container').getBoundingClientRect();
-  const scaleX = imgRect.width / PLAN_WIDTH;
-  const scaleY = imgRect.height / PLAN_HEIGHT;
-  const offsetX = imgRect.left - containerRect.left;
-  const offsetY = imgRect.top - containerRect.top;
-  return {
-    left: offsetX + x * scaleX,
-    top: offsetY + y * scaleY,
-  };
+  return { left: x, top: y };
 }
 
 // Is a client point inside the floorplan image's bounds?

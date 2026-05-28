@@ -28,7 +28,7 @@
 
 body {
   font-family: 'Segoe UI', system-ui, sans-serif;
-  background: var(--color-black);
+  background: mediumaquamarine;
   color: var(--color-white);
   min-height: 100vh;
   display: flex;
@@ -36,14 +36,17 @@ body {
 }
 
 .btn {
-  padding: 7px 16px;
-  border-radius: var(--radius-pill);
+  width: 44px;
+  background-color: transparent;
   border: 0px;
-  background: var(--color-red);
-  color: #fff;
   font: var(--font-sans);
   font-size: var(--fs-base);
   font-weight: 300;
+  visibility: hidden;
+}
+
+.btn.show {
+  visibility: visible;
 }
 
 .main {
@@ -54,9 +57,34 @@ body {
 }
 
 .toolBar {
+  position: fixed;
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 1;
+  background-color: var(--color-black);
+  width: 100%;
+}
+
+.toolBar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;              /* start exactly at the toolbar's bottom edge */
+  height: 40px;          /* how far the fade extends downward */
+  background: linear-gradient(to bottom, var(--color-black), var(--color-transparent));
+  pointer-events: none;  /* never block drags/clicks underneath */
+}
+
+.toolBar,
+.submitBar {
+  touch-action: none;
+}
+
+.toolBar .container {
+  display: flex;
+  gap: 1rem;
 }
 
 .device-token {
@@ -64,7 +92,7 @@ body {
   transition: all 0.15s;
   user-select: none;
   margin: 1rem 0px 1rem 0px;
-  width: 80px;
+  width: 60px;
 }
 .device-token:active { cursor: grabbing; opacity: 0.7; }
 
@@ -82,20 +110,24 @@ body {
 
 .canvas-area {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;          /* was flex */
   padding: 24px;
-  overflow: auto;
+  overflow: hidden;        /* transform pan is the only navigation */
   position: relative;
   background: transparent;
   background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 24px 24px;
+  padding-top: 240px;
+  padding-bottom: 130px;
+  touch-action: none;
+  width: 100%;
 }
 
 #floorplan-container {
   position: relative;
   display: inline-block;
+  transform-origin: 0 0;   /* scale from top-left so math is predictable */
+  transition: transform 0.05s;
 }
 
 #floorplan-img {
@@ -138,16 +170,30 @@ body {
 }
 .placed-device:hover .remove-btn { display: flex; }
 
-.drop-overlay {
+.submitBar {
+  position: fixed;
+  bottom: 0px;
+  padding-bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+  background-color: var(--color-black);
+  width: 100%;
+}
+
+.submitBar::before {
+  content: "";
   position: absolute;
-  inset: 0;
-  border-radius: 12px;
-  background: rgba(79,142,247,0.05);
-  display: none;
-  z-index: 20;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 40px;
+  background: linear-gradient(to top, var(--color-black), var(--color-transparent));
   pointer-events: none;
 }
-.drop-overlay.active { display: block; }
+
+
 
 .room-tooltip {
   position: fixed;
@@ -178,8 +224,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  text-align: center;
   padding: 14px 24px;
-  background: var(--color-white);
-  border-bottom: 1px solid var(--color-white);
   flex-shrink: 0;
 }

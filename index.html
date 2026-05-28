@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Voice Session</title>
 <link rel="stylesheet" href="styles.css">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -11,42 +11,35 @@
 <script src="student.js" defer></script>
 </head>
 <body>
-
-<div class="main">
-  <div class="section toolBar">
-    <h1>Floorplan 1</h1>
-    <p>Drag the device to place it on the floorplan.</p>
-    <img src="assets/device-bank.svg" class="device-token" id="va-token">
-    <div class="submitted-banner" id="submitted-banner">Placement submitted!</div>
-  </div>
-
-  <div class="canvas-area" id="canvas-area">
-    <div id="floorplan-container">
-      <div class="drop-overlay" id="drop-overlay"></div>
-      <img id="floorplan-img" src="assets/floorplan-1.svg"
-          width="860" height="620" draggable="false" style="display:block;">
+<!-- TOOLBAR AREA -->
+  <div class="main">
+    <div class="section toolBar">
+      <h1>Floorplan 1</h1>
+      <p>Drag the device to place it on the floorplan.</p>
+      <div class="container">
+        <button class="btn" onclick="clearMyDevices()">
+          <img src="assets/reset.svg" alt="Restart">
+        </button>
+        <img src="assets/device-bank.svg" class="device-token" id="va-token">
+        <button class="btn" onclick="submitPlacement()">
+          <img src="assets/submit.svg" alt="Submit">
+        </button>
+      </div>
+      <div class="submitted-banner" id="submitted-banner">Placement submitted!</div>
     </div>
-  </div>
 
-      <div class="sidebar-section" id="participant-actions">
-      <div>
-        <button class="btn" onclick="clearMyDevices()">Restart</button>
-        <button class="btn primary" onclick="submitPlacement()" id="submit-btn">Submit</button>
+<!-- FLOORPLAN AREA -->
+    <div class="canvas-area" id="canvas-area">
+      <div id="floorplan-container">
+        <div class="drop-overlay" id="drop-overlay"></div>
+        <img id="floorplan-img" src="assets/floorplan-1.svg" draggable="false">
       </div>
     </div>
 
-</div>
-
-<div class="room-tooltip" id="room-tooltip"></div>
-
-</body>
-
-<header>
-  <div class="header-actions">
-    <span>
-      Session <strong id="session-display">—</strong>
-    </span>
+    <div class="session-code">
+      <span>Session <strong id="session-display">—</strong></span>
+    </div>
   </div>
-</header>
-
+  <div class="room-tooltip" id="room-tooltip"></div>
+</body>
 </html>

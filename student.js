@@ -80,6 +80,9 @@ function onPointerUp(e) {
   destroyGhost();
   setDropOverlay(false);
   drag = null;
+  // Single source of truth for the submit bar — reflects the current count,
+  // so it shows after a placement and hides when the last device is removed.
+  updateSubmitBar();
 }
 
 // Global listeners: pointermove/up live on the window so the drag keeps working
@@ -100,6 +103,7 @@ function placeDevice(x, y) {
   myDevices.push({ id, x, y });
   renderDevice(id, x, y);
   saveMyDevices();
+  updateSubmitBar();
 }
 
 function moveDevice(id, x, y) {
@@ -121,6 +125,7 @@ function removeDevice(id) {
   const el = document.getElementById(id);
   if (el) el.remove();
   saveMyDevices();
+  updateSubmitBar();
 }
 
 function renderDevice(id, x, y) {
@@ -159,6 +164,7 @@ function clearMyDevices() {
   document.getElementById('submit-btn').disabled = false;
   saveMyDevices();
   localStorage.removeItem('va_submitted_' + sessionId);
+  updateSubmitBar();
 }
 
 function loadMyDevices() {
@@ -175,10 +181,17 @@ function loadMyDevices() {
       document.getElementById('submit-btn').disabled = true;
     }
   } catch(e) {}
+  updateSubmitBar();
 }
 
 function saveMyDevices() {
   localStorage.setItem('va_my_devices_' + sessionId, JSON.stringify(myDevices));
+}
+
+function updateSubmitBar() {
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.classList.toggle('show', myDevices.length > 0);
+  });
 }
 
 // ─── SUBMISSION ─────────────────────────────────────────────────────────────
@@ -205,6 +218,171 @@ async function submitPlacement() {
   }
 }
 
+// ─── ZOOM / PAN STATE ─────────────────────────────────────────────────────────
+let zoomLevel = 1;
+let panX = 0;
+let panY = 0;
+const ZOOM_MIN = 0.4;
+const ZOOM_MAX = 4;
+
+// Combine pan + scale into one transform. transform-origin stays 0 0 (set in CSS)
+// so the coordinate helpers stay predictable; pan compensates to anchor the focal point.
+function applyZoom() {
+  const container = document.getElementById('floorplan-container');
+  container.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+}
+
+// Convert a client (viewport) point to canvas-relative pixels.
+function clientToCanvas(clientX, clientY) {
+  const canvas = document.getElementById('canvas-area');
+  const r = canvas.getBoundingClientRect();
+  return { x: clientX - r.left, y: clientY - r.top };
+}
+
+// Zoom toward a focal point (canvas-relative px), keeping that point visually anchored.
+function zoomAt(focalX, focalY, newZoom) {
+  newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, newZoom));
+  const ratio = newZoom / zoomLevel;
+  panX = focalX - (focalX - panX) * ratio;
+  panY = focalY - (focalY - panY) * ratio;
+  zoomLevel = newZoom;
+  applyZoom();
+}
+
+// ─── WHEEL ZOOM (desktop) ──────────────────────────────────────────────────────
+function onWheelZoom(e) {
+  e.preventDefault();
+  const { x, y } = clientToCanvas(e.clientX, e.clientY);
+  const delta = -e.deltaY * 0.0015;        // wheel up = zoom in
+  zoomAt(x, y, zoomLevel * (1 + delta));
+}
+
+function initZoom() {
+  const canvas = document.getElementById('canvas-area');
+  if (!canvas) return;
+  canvas.addEventListener('wheel', onWheelZoom, { passive: false });
+}
+
+initZoom();
+
+// ─── PINCH ZOOM (touch) ───────────────────────────────────────────────────────
+// Track active pointers by id so we can detect two-finger gestures.
+const activePointers = new Map();
+let pinchStartDist = null;
+let pinchStartZoom = 1;
+
+function pointerDist() {
+  const pts = [...activePointers.values()];
+  if (pts.length < 2) return null;
+  const dx = pts[0].x - pts[1].x;
+  const dy = pts[0].y - pts[1].y;
+  return Math.hypot(dx, dy);
+}
+
+function onZoomPointerDown(e) {
+  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (activePointers.size === 2) {
+    // A pinch is starting — abort any single-finger device drag so the
+    // first finger doesn't accidentally move a device mid-pinch.
+    if (drag) {
+      const el = drag.id && document.getElementById(drag.id);
+      if (el) el.style.visibility = 'visible';
+      destroyGhost();
+      setDropOverlay(false);
+      drag = null;
+    }
+    pinchStartDist = pointerDist();
+    pinchStartZoom = zoomLevel;
+  }
+}
+
+function onZoomPointerMove(e) {
+  if (!activePointers.has(e.pointerId)) return;
+  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  if (activePointers.size === 2 && pinchStartDist) {
+    e.preventDefault();
+    const pts = [...activePointers.values()];
+    const midX = (pts[0].x + pts[1].x) / 2;
+    const midY = (pts[0].y + pts[1].y) / 2;
+    const { x, y } = clientToCanvas(midX, midY);
+    const dist = pointerDist();
+    const ratio = dist / pinchStartDist;
+    zoomAt(x, y, pinchStartZoom * ratio);
+  }
+}
+
+function onZoomPointerUp(e) {
+  activePointers.delete(e.pointerId);
+  if (activePointers.size < 2) pinchStartDist = null;
+}
+
+function initPinch() {
+  const canvas = document.getElementById('canvas-area');
+  if (!canvas) return;
+  canvas.addEventListener('pointerdown', onZoomPointerDown);
+  canvas.addEventListener('pointermove', onZoomPointerMove, { passive: false });
+  canvas.addEventListener('pointerup', onZoomPointerUp);
+  canvas.addEventListener('pointercancel', onZoomPointerUp);
+}
+
+initPinch();
+
+
+// ─── PAN (drag empty floorplan to move it) ────────────────────────────────────
+let pan = null;  // { startX, startY, startPanX, startPanY }
+
+function startPan(e) {
+  // Only when not already device-dragging or pinching.
+  if (drag || activePointers.size >= 2) return;
+  pan = {
+    startX: e.clientX,
+    startY: e.clientY,
+    startPanX: panX,
+    startPanY: panY,
+  };
+}
+
+function onPanMove(e) {
+  if (!pan) return;
+  if (activePointers.size >= 2) { pan = null; return; }  // pinch took over
+  e.preventDefault();
+  panX = pan.startPanX + (e.clientX - pan.startX);
+  panY = pan.startPanY + (e.clientY - pan.startY);
+  applyZoom();
+}
+
+function onPanUp() {
+  pan = null;
+}
+
+function initPan() {
+  const container = document.getElementById('floorplan-container');
+  if (!container) return;
+  // pointerdown on the container background starts a pan. Devices and the
+  // remove button call stopPropagation, so their drags won't reach here.
+  container.addEventListener('pointerdown', startPan);
+  window.addEventListener('pointermove', onPanMove, { passive: false });
+  window.addEventListener('pointerup', onPanUp);
+  window.addEventListener('pointercancel', onPanUp);
+}
+
+initPan();
+
+// Center the floorplan in the canvas via an initial pan offset (we no longer
+// rely on flex centering, so the transform owns all positioning).
+function centerFloorplan() {
+  const canvas = document.getElementById('canvas-area');
+  const container = document.getElementById('floorplan-container');
+  if (!canvas || !container) return;
+  const cRect = canvas.getBoundingClientRect();
+  panX = (cRect.width - PLAN_WIDTH * zoomLevel) / 2;
+  panY = (cRect.height - PLAN_HEIGHT * zoomLevel) / 2;
+  applyZoom();
+}
+
+
 // `defer` guarantees the DOM is parsed before this runs.
 initSourceToken();
 loadMyDevices();
+centerFloorplan();
