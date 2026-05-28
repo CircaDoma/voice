@@ -12,6 +12,35 @@
 </head>
 <body>
 
+<div class="main">
+  <div class="section toolBar">
+    <h1>Floorplan 1</h1>
+    <p>Drag the device to place it on the floorplan.</p>
+    <img src="assets/device-bank.svg" class="device-token" id="va-token">
+    <div class="submitted-banner" id="submitted-banner">Placement submitted!</div>
+  </div>
+
+  <div class="canvas-area" id="canvas-area">
+    <div id="floorplan-container">
+      <div class="drop-overlay" id="drop-overlay"></div>
+      <img id="floorplan-img" src="assets/floorplan-1.svg"
+          width="860" height="620" draggable="false" style="display:block;">
+    </div>
+  </div>
+
+      <div class="sidebar-section" id="participant-actions">
+      <div>
+        <button class="btn" onclick="clearMyDevices()">Restart</button>
+        <button class="btn primary" onclick="submitPlacement()" id="submit-btn">Submit</button>
+      </div>
+    </div>
+
+</div>
+
+<div class="room-tooltip" id="room-tooltip"></div>
+
+</body>
+
 <header>
   <div class="header-actions">
     <span>
@@ -20,40 +49,4 @@
   </div>
 </header>
 
-<div class="main">
-  <div class="sidebar">
-    <div class="container">
-      <h1>Floorplan 1</h1>
-      <p>Drag the device to place it on the floorplan.</p>
-      <img src="assets/device-bank.svg" class="device-token" draggable="true" id="va-token" ondragstart="onTokenDrag(event)">
-      <div class="submitted-banner" id="submitted-banner">Placement submitted!</div>
-    </div>
-
-    <div class="sidebar-section" id="participant-actions">
-      <div>
-        <button class="btn" onclick="clearMyDevices()">Undo</button>
-        <button class="btn primary" onclick="submitPlacement()" id="submit-btn">Submit</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="canvas-area" id="canvas-area">
-    <div id="floorplan-container"
-      ondragover="onDragOver(event)"
-      ondrop="onDrop(event)"
-      ondragleave="onDragLeave(event)">
-
-      <div class="drop-overlay" id="drop-overlay"></div>
-
-      <img id="floorplan-img" src="assets/floorplan-1.svg" 
-           width="860" height="620" 
-           draggable="false"
-           style="display:block;">
-    </div>
-  </div>
-</div>
-
-<div class="room-tooltip" id="room-tooltip"></div>
-
-</body>
 </html>

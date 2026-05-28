@@ -8,7 +8,6 @@ const firebaseConfig = {
   messagingSenderId: "578750056973",
   appId: "1:578750056973:web:d36237cc85cfbd6409e344"
 };
-
 firebase.initializeApp(firebaseConfig);
 
 // ─── SESSION ────────────────────────────────────────────────────────────────
@@ -23,22 +22,15 @@ function getOrCreateSession() {
   if (display) display.textContent = sid;
   return sid;
 }
-
-// sessionId is used by both pages — set once at load.
 const sessionId = getOrCreateSession();
 
 // ─── COORDINATE HELPERS ─────────────────────────────────────────────────────
-// Stored device positions and roomCenters live in SVG viewBox units (0..860 × 0..620).
-// These helpers translate between client-space (drop events) and viewBox space,
-// and back to container CSS pixels for absolutely-positioned HTML overlays.
-
-// ─── COORDINATE HELPERS ─────────────────────────────────────────────────────
-// Stored device positions live in logical plan units (0..860 × 0..620),
-// matching the floorplan image's natural dimensions. Keeping a fixed logical
-// space means saved positions stay valid even if the displayed size changes.
+// Stored device positions live in a fixed logical space (0..860 × 0..620),
+// matching the floorplan image's natural dimensions.
 const PLAN_WIDTH = 860;
 const PLAN_HEIGHT = 620;
 
+// Screen/pointer position → logical plan units.
 function clientToSvg(clientX, clientY) {
   const img = document.getElementById('floorplan-img');
   const rect = img.getBoundingClientRect();
@@ -47,13 +39,13 @@ function clientToSvg(clientX, clientY) {
   return { x, y };
 }
 
+// Logical plan units → CSS pixels relative to the container.
 function svgToContainerPx(x, y) {
   const img = document.getElementById('floorplan-img');
   const imgRect = img.getBoundingClientRect();
   const containerRect = document.getElementById('floorplan-container').getBoundingClientRect();
   const scaleX = imgRect.width / PLAN_WIDTH;
   const scaleY = imgRect.height / PLAN_HEIGHT;
-  // Img may be offset within the container (borders, sibling elements); account for that.
   const offsetX = imgRect.left - containerRect.left;
   const offsetY = imgRect.top - containerRect.top;
   return {
@@ -62,12 +54,15 @@ function svgToContainerPx(x, y) {
   };
 }
 
-// ─── DRAG OVERLAY (both pages use this so the overlay shows during drag-over) ─
-function onDragOver(e) {
-  e.preventDefault();
-  document.getElementById('drop-overlay').classList.add('active');
+// Is a client point inside the floorplan image's bounds?
+function isOverFloorplan(clientX, clientY) {
+  const img = document.getElementById('floorplan-img');
+  const r = img.getBoundingClientRect();
+  return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
 }
 
-function onDragLeave(e) {
-  document.getElementById('drop-overlay').classList.remove('active');
+// Show/hide the dashed drop overlay.
+function setDropOverlay(active) {
+  const o = document.getElementById('drop-overlay');
+  if (o) o.classList.toggle('active', active);
 }

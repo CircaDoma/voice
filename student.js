@@ -2,24 +2,96 @@
 let myDevices = [];
 let hasSubmitted = false;
 
-// ─── DRAG FROM SIDEBAR ──────────────────────────────────────────────────────
-function onTokenDrag(e) {
-  e.dataTransfer.setData('type', 'new');
+// Active drag operation (null when not dragging).
+let drag = null;
+let ghostEl = null;
+
+// ─── GHOST ELEMENT ───────────────────────────────────────────────────────────
+// A floating clone that follows the pointer during a drag. We draw it ourselves
+// (Pointer Events have no built-in drag image), which also means no hotspot offset.
+function createGhost(clientX, clientY) {
+  ghostEl = document.createElement('div');
+  ghostEl.className = 'placed-device drag-ghost';
+  ghostEl.innerHTML = '<img src="assets/device-icon.svg">';
+  document.body.appendChild(ghostEl);
+  moveGhost(clientX, clientY);
+}
+function moveGhost(clientX, clientY) {
+  if (!ghostEl) return;
+  ghostEl.style.left = (clientX + window.scrollX) + 'px';
+  ghostEl.style.top = (clientY + window.scrollY) + 'px';
+}
+function destroyGhost() {
+  if (ghostEl) { ghostEl.remove(); ghostEl = null; }
 }
 
-function onDrop(e) {
+// ─── POINTER DRAG: START ──────────────────────────────────────────────────────
+// Begin a drag from the source token (creates a new device) or from an
+// already-placed device (moves it).
+function startDragNew(e) {
+  if (hasSubmitted) return;
   e.preventDefault();
-  document.getElementById('drop-overlay').classList.remove('active');
+  drag = { mode: 'new', id: null };
+  createGhost(e.clientX, e.clientY);
+  setDropOverlay(true);
+}
 
-  const type = e.dataTransfer.getData('type');
+function startDragExisting(e, id) {
+  if (hasSubmitted) return;
+  e.preventDefault();
+  e.stopPropagation();
+  drag = { mode: 'existing', id };
+  createGhost(e.clientX, e.clientY);
+  setDropOverlay(true);
+  // Hide the original while dragging so it's clear what's moving.
+  const el = document.getElementById(id);
+  if (el) el.style.visibility = 'hidden';
+}
+
+// ─── POINTER DRAG: MOVE ───────────────────────────────────────────────────────
+function onPointerMove(e) {
+  if (!drag) return;
+  e.preventDefault();
+  moveGhost(e.clientX, e.clientY);
+  setDropOverlay(isOverFloorplan(e.clientX, e.clientY));
+}
+
+// ─── POINTER DRAG: END ────────────────────────────────────────────────────────
+function onPointerUp(e) {
+  if (!drag) return;
+  e.preventDefault();
+
+  const over = isOverFloorplan(e.clientX, e.clientY);
   const { x, y } = clientToSvg(e.clientX, e.clientY);
 
-  if (type === 'existing') {
-    const id = e.dataTransfer.getData('device-id');
-    moveDevice(id, x, y);
-  } else if (!hasSubmitted) {
-    placeDevice(x, y);
+  if (drag.mode === 'new') {
+    if (over && !hasSubmitted) placeDevice(x, y);
+  } else if (drag.mode === 'existing') {
+    const el = document.getElementById(drag.id);
+    if (over) {
+      moveDevice(drag.id, x, y);
+      if (el) el.style.visibility = 'visible';
+    } else {
+      // Dropped off the plan → remove it.
+      removeDevice(drag.id);
+    }
   }
+
+  destroyGhost();
+  setDropOverlay(false);
+  drag = null;
+}
+
+// Global listeners: pointermove/up live on the window so the drag keeps working
+// even if the pointer leaves the token or the floorplan mid-drag.
+window.addEventListener('pointermove', onPointerMove, { passive: false });
+window.addEventListener('pointerup', onPointerUp);
+window.addEventListener('pointercancel', onPointerUp);
+
+// Wire up the source token once the DOM is ready.
+function initSourceToken() {
+  const token = document.getElementById('va-token');
+  if (token) token.addEventListener('pointerdown', startDragNew);
 }
 
 // ─── DEVICE MANAGEMENT ──────────────────────────────────────────────────────
@@ -59,19 +131,24 @@ function renderDevice(id, x, y) {
   el.id = id;
   el.style.left = px.left + 'px';
   el.style.top = px.top + 'px';
-  el.innerHTML = '<img src="assets/device-icon.svg"><button class="remove-btn" onclick="removeDevice(\'' + id + '\')" title="Remove">×</button>';
-  el.setAttribute('draggable', 'true');
+  el.innerHTML = '<img src="assets/device-icon.svg"><button class="remove-btn" title="Remove">×</button>';
 
-  el.addEventListener('dragstart', (e) => {
-    e.dataTransfer.setData('type', 'existing');
-    e.dataTransfer.setData('device-id', id);
+  // Start a move-drag when pressing the device body.
+  el.addEventListener('pointerdown', (e) => startDragExisting(e, id));
+
+  // Remove button: stop it from also starting a drag.
+  const btn = el.querySelector('.remove-btn');
+  btn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    removeDevice(id);
   });
 
   container.appendChild(el);
 }
 
 function clearRenderedDevices() {
-  document.querySelectorAll('.placed-device').forEach(el => el.remove());
+  document.querySelectorAll('.placed-device:not(.drag-ghost)').forEach(el => el.remove());
 }
 
 function clearMyDevices() {
@@ -128,6 +205,6 @@ async function submitPlacement() {
   }
 }
 
-// Restore any in-progress placement on page load.
-// `defer` on the script tag guarantees the DOM is parsed first.
+// `defer` guarantees the DOM is parsed before this runs.
+initSourceToken();
 loadMyDevices();
