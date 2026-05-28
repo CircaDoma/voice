@@ -1,3 +1,5 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
 :root {
   --color-black:  #000000;
   --color-red: #c32032;
@@ -32,12 +34,14 @@ body {
   display: flex;
   flex-direction: column;
   margin-top: 0px;
+  overflow: hidden;
 }
 .main {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   align-items: center;
+  width: 100%;
 }
 
 h1 {
@@ -115,7 +119,7 @@ p {
   padding: 24px;
   overflow: hidden;        /* transform pan is the only navigation */
   position: relative;
-  background: transparent;
+  background: var(--color-black);
   background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 24px 24px;
   padding-top: 240px;
@@ -135,6 +139,7 @@ p {
   width: 860px;
   height: 620px;
   max-width: none;
+  background-color: var(--color-black);
 }
 
 .placed-device {

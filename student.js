@@ -165,6 +165,7 @@ function clearMyDevices() {
   saveMyDevices();
   localStorage.removeItem('va_submitted_' + sessionId);
   updateSubmitBar();
+  fitFloorplan();
 }
 
 function loadMyDevices() {
@@ -216,6 +217,7 @@ async function submitPlacement() {
     alert('Could not save — check your connection and try again.');
     console.error(e);
   }
+  fitFloorplan();
 }
 
 // ─── ZOOM / PAN STATE ─────────────────────────────────────────────────────────
@@ -359,8 +361,7 @@ function onPanUp() {
 function initPan() {
   const container = document.getElementById('floorplan-container');
   if (!container) return;
-  // pointerdown on the container background starts a pan. Devices and the
-  // remove button call stopPropagation, so their drags won't reach here.
+
   container.addEventListener('pointerdown', startPan);
   window.addEventListener('pointermove', onPanMove, { passive: false });
   window.addEventListener('pointerup', onPanUp);
@@ -369,20 +370,38 @@ function initPan() {
 
 initPan();
 
-// Center the floorplan in the canvas via an initial pan offset (we no longer
-// rely on flex centering, so the transform owns all positioning).
-function centerFloorplan() {
+function fitFloorplan() {
   const canvas = document.getElementById('canvas-area');
-  const container = document.getElementById('floorplan-container');
-  if (!canvas || !container) return;
+  if (!canvas) return;
+
   const cRect = canvas.getBoundingClientRect();
-  panX = (cRect.width - PLAN_WIDTH * zoomLevel) / 2;
-  panY = (cRect.height - PLAN_HEIGHT * zoomLevel) / 2;
+  const margin = 16;
+
+  const cs = getComputedStyle(canvas);
+  const padTop = parseFloat(cs.paddingTop);
+  const padBottom = parseFloat(cs.paddingBottom);
+  const padLeft = parseFloat(cs.paddingLeft);
+  const padRight = parseFloat(cs.paddingRight);
+
+  const availW = cRect.width - padLeft - padRight - margin * 2;
+  const availH = cRect.height - padTop - padBottom - margin * 2;
+
+  const fitZoom = Math.min(availW / PLAN_WIDTH, availH / PLAN_HEIGHT);
+  zoomLevel = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, fitZoom));
+
+  const scaledW = PLAN_WIDTH * zoomLevel;
+  const contentW = cRect.width - padLeft - padRight;
+
+  // Center within the content box. Do NOT add padLeft — the canvas's CSS
+  // padding already offsets the container's origin by that amount, so adding
+  // it here would double-count it (the right-shift bug).
+  panX = (contentW - scaledW) / 2;
+  panY = margin;
+
+
   applyZoom();
 }
 
-
-// `defer` guarantees the DOM is parsed before this runs.
 initSourceToken();
 loadMyDevices();
-centerFloorplan();
+fitFloorplan();
