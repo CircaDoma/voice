@@ -208,7 +208,10 @@ async function submitPlacement() {
   };
   try {
     const db = firebase.database();
-    await db.ref('submissions/' + sessionId).set(submission);
+    // Keyed by session/client: everyone in the session lands under the same
+    // session node (what the instructor listens to), but each browser keeps
+    // its own child. Re-submitting from the same browser updates in place.
+    await db.ref('submissions/' + sessionId + '/' + clientId).set(submission);
     hasSubmitted = true;
     localStorage.setItem('va_submitted_' + sessionId, 'true');
     document.getElementById('submitted-banner').style.display = 'block';

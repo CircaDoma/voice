@@ -1,0 +1,89 @@
+/* ─── INSTRUCTOR VIEW ─────────────────────────────────────────────────────────
+   Loaded AFTER styles.css. Only additions/overrides live here so the two views
+   can't drift apart visually — the student sheet stays the single source of
+   truth for the shared layout. */
+
+/* Stats replace the device-token strip in the toolbar. */
+.stats-row {
+  padding: 1rem 0;
+  gap: 2rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 64px;
+}
+
+.stat-num {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-num.stat-room {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  padding-top: 4px;
+}
+
+.stat-label {
+  font-size: var(--fs-xs);
+  color: var(--color-gray);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Facilitator buttons are always visible (the student .btn class hides
+   itself until a device is placed, which makes no sense here). */
+.instructor-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 0 1rem 0;
+}
+
+.ibtn {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-white);
+  background: var(--color-transparent);
+  border: 1px solid var(--color-gray);
+  border-radius: var(--radius-pill);
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ibtn:hover { background: rgba(255, 255, 255, 0.1); }
+.ibtn.danger { border-color: var(--color-red); color: var(--color-red); }
+.ibtn.danger:hover { background: rgba(195, 32, 50, 0.15); }
+
+/* Heatmap dots live inside #floorplan-container, so they are positioned and
+   sized in LOGICAL plan units (0..860 × 0..620) and inherit the container's
+   pan/zoom transform — same rule as .placed-device. Do not size these in
+   screen pixels. */
+.heatmap-dot {
+  position: absolute;
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  filter: blur(10px);
+  z-index: 5;
+}
+
+.join-hint {
+  font-size: var(--fs-xs);
+  color: var(--color-gray);
+}
+
+/* The session-code row is hidden in short-landscape by styles.css; keep it
+   visible here since the join URL is the whole point of the facilitator view. */
+@media (orientation: landscape) and (max-height: 600px) {
+  .session-code {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 200px; /* clear the sidebar toolbar */
+  }
+}

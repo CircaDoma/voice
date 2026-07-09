@@ -24,6 +24,19 @@ function getOrCreateSession() {
 }
 const sessionId = getOrCreateSession();
 
+// Per-browser client ID. The session code is SHARED by the whole class, so
+// submissions must be keyed by client too — otherwise every student writes to
+// the same path and only the last submission survives.
+function getOrCreateClientId() {
+  let cid = localStorage.getItem('va_client_id');
+  if (!cid) {
+    cid = 'C' + Math.random().toString(36).substr(2, 8);
+    localStorage.setItem('va_client_id', cid);
+  }
+  return cid;
+}
+const clientId = getOrCreateClientId();
+
 // ─── COORDINATE HELPERS ─────────────────────────────────────────────────────
 // Stored device positions live in a fixed logical space (0..860 × 0..620),
 // matching the floorplan image's NATURAL (untransformed) dimensions.
