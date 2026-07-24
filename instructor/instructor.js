@@ -449,10 +449,18 @@ async function deleteSession(sid) {
   renderSessionList();
 }
 
-// Build the student join URL for this session, resolved against this page's
-// own location so it works regardless of where the app is hosted.
+// Build the student join URL for this session. Strips the trailing
+// "instructor" segment from the CURRENT page's own URL rather than
+// resolving 'index.html' relatively — that would resolve to this page's own
+// folder (instructor/index.html) now that this view lives one level down,
+// not the student view at the site root. Handles the segment with or
+// without a trailing slash or explicit index.html, since static hosts vary
+// on whether they redirect to the slash form.
 function studentJoinUrl(sid) {
-  const url = new URL('index.html', window.location.href);
+  const url = new URL(window.location.href);
+  url.pathname = url.pathname.replace(/instructor\/?(index\.html)?$/, '');
+  url.search = '';
+  url.hash = '';
   url.searchParams.set('session', sid);
   return url.href;
 }
@@ -510,6 +518,12 @@ function attachReadyCountListener(sid) {
   ref.on('value', (snap) => {
     const count = snap.exists() ? snap.numChildren() : 0;
     updateReadyCountDisplays(count);
+  }, (err) => {
+    // This callback firing at all confirms the count is stuck at 0 because
+    // reads are being rejected, not because no one has joined. Most likely
+    // cause: 'joined/' is newer than 'submissions/' and 'sessions/', and your
+    // Firebase Realtime Database rules haven't been extended to cover it.
+    console.error('Ready-count read failed for session ' + sid + ' — likely a Firebase rules gap on the "joined/" path:', err);
   });
   readyCountListener = { ref };
 }

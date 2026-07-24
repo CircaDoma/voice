@@ -128,12 +128,24 @@ let PLAN_HEIGHT = SCENARIOS[0].planHeight;
 
 // Swap the floorplan image + logical dimensions + toolbar text for a scenario.
 // Shared by both views. Caller is responsible for re-fitting the viewport.
+// scenarios.js writes floorplan paths as if the page is at the site root
+// (e.g. 'assets/floorplan-1.svg') — true for the student view, but the
+// instructor view now lives one level down in /instructor/. Rather than
+// hardcoding that in scenarios.js (which would break the student view) or
+// duplicating the assets folder, detect the current page's depth once here
+// and prefix accordingly, so scenarios.js stays a single, path-agnostic
+// source of truth for both views.
+const ASSET_PREFIX = /\/instructor\/?(index\.html)?$/.test(window.location.pathname) ? '../' : '';
+function assetPath(relativePath) {
+  return ASSET_PREFIX + relativePath;
+}
+
 function applyScenarioAssets(scenario) {
   PLAN_WIDTH = scenario.planWidth;
   PLAN_HEIGHT = scenario.planHeight;
 
   const img = document.getElementById('floorplan-img');
-  img.src = scenario.floorplan;
+  img.src = assetPath(scenario.floorplan);
   img.style.width = scenario.planWidth + 'px';
   img.style.height = scenario.planHeight + 'px';
 
