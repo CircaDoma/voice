@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 620">
+  <defs>
+    <style>
+      .wall {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 7px;
+        stroke-linecap: butt;
+        stroke-miterlimit: 10;
+      }
+      .open {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 2px;
+        stroke-miterlimit: 10;
+        stroke-dasharray: 9 9;
+      }
+      .thin {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 2px;
+        stroke-miterlimit: 10;
+      }
+      .lbl {
+        fill: #fff;
+        font-family: NunitoSans-12ptExtraLight, 'Nunito Sans';
+        font-size: 26.37px;
+        font-variation-settings: 'wght' 200, 'wdth' 100, 'opsz' 12, 'YTLC' 500;
+        font-weight: 200;
+      }
+      .lbl-sm {
+        fill: #fff;
+        font-family: NunitoSans-12ptExtraLight, 'Nunito Sans';
+        font-size: 18px;
+        font-weight: 200;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <!-- outer shell -->
+    <rect class="wall" x="20" y="20" width="820" height="580"/>
+
+    <!-- enclosed bedroom, top-right -->
+    <polyline class="wall" points="560,20 560,140"/>
+    <polyline class="wall" points="560,190 560,240"/>
+    <polyline class="wall" points="560,240 840,240"/>
+
+    <!-- enclosed bath, below bedroom -->
+    <polyline class="wall" points="560,240 560,290"/>
+    <polyline class="wall" points="560,340 560,380"/>
+    <polyline class="wall" points="560,380 840,380"/>
+
+    <!-- kitchen island + counters -->
+    <rect class="thin" x="120" y="140" width="200" height="50"/>
+    <polyline class="thin" points="20,60 300,60"/>
+
+    <!-- dashed zone dividers (no walls in the open area) -->
+    <line class="open" x1="400" y1="20" x2="400" y2="320"/>
+    <line class="open" x1="20" y1="320" x2="560" y2="320"/>
+
+    <text class="lbl" transform="translate(70 110)">Kitchen</text>
+    <text class="lbl" transform="translate(430 110)">Dining</text>
+    <text class="lbl" transform="translate(180 480)">Living Room</text>
+    <text class="lbl" transform="translate(640 130)">Bedroom</text>
+    <text class="lbl" transform="translate(668 315)">Bath</text>
+    <text class="lbl" transform="translate(640 500)">Entry</text>
+    <text class="lbl-sm" transform="translate(155 172)">Island</text>
+  </g>
+</svg>

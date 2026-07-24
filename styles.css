@@ -219,6 +219,97 @@ p {
   flex-shrink: 0;
 }
 
+/* ─── FULL-SCREEN GATES ──────────────────────────────────────────────────────
+   Used for the student "enter a code" screen and the facilitator session
+   picker / new-session screens. Same black canvas, white Nunito Sans type. */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;              /* JS flips to flex when the gate is active */
+  align-items: center;
+  justify-content: center;
+  background: var(--color-black);
+}
+.gate.active { display: flex; }
+
+.gate-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: min(90vw, 420px);
+  text-align: center;
+}
+
+.gate-input {
+  font-family: var(--font-sans);
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--color-white);
+  background: var(--color-transparent);
+  border: none;
+  border-bottom: 1px solid var(--color-white);
+  border-radius: 0;
+  padding: 0.5rem;
+  width: 100%;
+  outline: none;
+}
+.gate-input::placeholder { color: rgba(255, 255, 255, 0.25); }
+
+.gate-btn {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--color-black);
+  background: var(--color-white);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 10px 36px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.gate-btn:hover { opacity: 0.85; }
+
+/* Icon-only variant — same white-pill treatment, but circular and sized for
+   a single icon instead of text. fill="currentColor" on the icon picks up
+   the button's black text color automatically. */
+.gate-btn.icon-only {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: var(--radius-full);
+}
+.gate-btn.icon-only svg { display: block; }
+
+
+.gate-error {
+  color: var(--color-red);
+  font-size: var(--fs-sm);
+  min-height: 1.2em;
+  margin: 0;
+}
+
+.change-session-btn {
+  font-family: var(--font-sans);
+  font-size: var(--fs-xs);
+  color: var(--color-white);
+  background: var(--color-transparent);
+  border: 1px solid var(--color-gray);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin: 0.75rem 0;   /* sits in the toolbar, below the device token strip */
+}
+.change-session-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
 @media (orientation: landscape) and (max-height: 600px) {
   .main {
     flex-direction: row;
@@ -274,3 +365,84 @@ p {
     padding-top: 2rem;
   }
 }
+/* ─── SCENARIO PROGRESS ──────────────────────────────────────────────────── */
+.scenario-progress-label {
+  font-size: var(--fs-xs);
+  color: var(--color-gray);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.progress-dots .dot {
+  width: 13px;
+  height: 13px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-white);
+  background: var(--color-transparent);
+}
+.progress-dots .dot.done { background: var(--color-white); opacity: 0.4; }
+.progress-dots .dot.current { background: var(--color-white); }
+
+/* ─── WAITING / COMPLETE OVERLAY (Menti-style holding screen) ────────────────
+   Covers the whole viewport after a student submits; dismissed automatically
+   when the facilitator advances the scenario (or by "Edit my placement"). */
+.wait-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--color-black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  text-align: center;
+  padding: 2rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.wait-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.wait-icon {
+  width: 72px;
+  animation: wait-pulse 1.8s ease-in-out infinite;
+}
+@keyframes wait-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.12); opacity: 0.7; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wait-icon { animation: none; }
+}
+
+.wait-overlay h2 {
+  font-size: var(--fs-xl);
+  font-weight: 500;
+}
+.wait-overlay p {
+  max-width: 320px;
+}
+
+.wait-edit-btn {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-white);
+  background: var(--color-transparent);
+  border: 1px solid var(--color-white);
+  border-radius: var(--radius-pill);
+  padding: 8px 20px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.15s;
+}
+.wait-edit-btn:hover { background: rgba(255, 255, 255, 0.1); }

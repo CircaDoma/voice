@@ -11,18 +11,43 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 // ─── SESSION ────────────────────────────────────────────────────────────────
-function getOrCreateSession() {
-  const url = new URL(window.location.href);
-  let sid = url.searchParams.get('session') || localStorage.getItem('va_session_id');
-  if (!sid) {
-    sid = 'S' + Math.random().toString(36).substr(2, 6).toUpperCase();
-    localStorage.setItem('va_session_id', sid);
-  }
+// Sessions are no longer auto-minted on page load. Each view decides when a
+// session becomes active: the student view asks for a code (or reads
+// ?session= from the URL), the facilitator view offers a picker / "start new
+// session" flow. Nothing that touches `sessionId` may run before setSession().
+let sessionId = null;
+
+function setSession(sid) {
+  sessionId = sid;
   const display = document.getElementById('session-display');
   if (display) display.textContent = sid;
   return sid;
 }
-const sessionId = getOrCreateSession();
+
+// 4 random uppercase letters — no digits. Plenty of headroom for how few
+// sessions this ever needs to hold at once, and letters-only avoids the
+// visually-ambiguous 0/O, 1/I mixups digits bring into a spoken-aloud code.
+function newSessionCode() {
+  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let code = '';
+  for (let i = 0; i < 4; i++) {
+    code += LETTERS[Math.floor(Math.random() * LETTERS.length)];
+  }
+  return code;
+}
+
+// Read ?session=CODE from the URL (normalized), or null.
+function sessionFromUrl() {
+  const raw = new URL(window.location.href).searchParams.get('session');
+  return raw ? raw.trim().toUpperCase() : null;
+}
+
+// Write the active session into the URL so a refresh rejoins the same session.
+function putSessionInUrl(sid) {
+  const u = new URL(window.location.href);
+  u.searchParams.set('session', sid);
+  history.replaceState(null, '', u);
+}
 
 // Per-browser client ID. The session code is SHARED by the whole class, so
 // submissions must be keyed by client too — otherwise every student writes to
@@ -37,17 +62,108 @@ function getOrCreateClientId() {
 }
 const clientId = getOrCreateClientId();
 
-// ─── COORDINATE HELPERS ─────────────────────────────────────────────────────
-// Stored device positions live in a fixed logical space (0..860 × 0..620),
-// matching the floorplan image's NATURAL (untransformed) dimensions.
+// ─── SCENARIO STATE ─────────────────────────────────────────────────────────
+// The facilitator drives progression by writing an index to
+// sessions/{sessionId}/scenarioIndex. Both views listen to it (see
+// initScenarioSync below) so everyone advances together, Menti-style.
+//
+// scenarioIndex === SCENARIOS.length is a valid terminal state meaning
+// "session complete".
+let scenarioIndex = 0;
+
+function currentScenario() {
+  return SCENARIOS[Math.min(scenarioIndex, SCENARIOS.length - 1)];
+}
+
+function sessionIsComplete() {
+  return scenarioIndex >= SCENARIOS.length;
+}
+
+function scenarioStateRef() {
+  return firebase.database().ref('sessions/' + sessionId + '/scenarioIndex');
+}
+
+// Firebase path for one scenario's submissions in this session.
+function submissionsRef(scenario) {
+  return firebase.database().ref('submissions/' + sessionId + '/' + scenario.id);
+}
+
+// Live presence: one child per connected, ready student browser. Written on
+// the student's "I'm Ready" click and auto-removed via onDisconnect() when
+// that browser disconnects — so this reflects who's here right now, not a
+// running tally of everyone who's ever joined. Feeds the facilitator's
+// Menti-style ready counter (big-code overlay + toolbar stat).
+function joinedRef(sid) {
+  return firebase.database().ref('joined/' + sid);
+}
+
+// Subscribe to scenario changes. onChange(index) fires immediately with the
+// current value (0 if the facilitator hasn't opened the session yet) and again
+// on every advance.
+function initScenarioSync(onChange) {
+  scenarioStateRef().on('value', (snap) => {
+    const idx = snap.val();
+    // null means the facilitator hasn't started this session yet (no node
+    // written) — pass that through as-is rather than defaulting to 0, so
+    // callers can tell "not started" apart from "on scenario 1" and show a
+    // waiting screen instead of jumping straight into the floorplan.
+    onChange(typeof idx === 'number' ? idx : null);
+  }, (err) => {
+    console.error('Scenario sync error:', err);
+    onChange(0); // a real connection error still degrades to scenario 1 rather than a blank screen
+  });
+}
+
+// ─── COORDINATE SPACE ───────────────────────────────────────────────────────
+// Stored device positions live in a fixed logical space matching the ACTIVE
+// floorplan's viewBox — the dimensions come from the scenario config and are
+// updated by applyScenarioAssets() on every scenario change.
 //
 // The floorplan container carries a CSS transform: translate(pan) scale(zoom).
-// Placed devices are children of that container, so they inherit the transform
-// automatically. That means devices must be positioned in raw logical units —
-// the transform does all the scaling/panning. Do NOT apply scale here too, or
-// it gets applied twice (the "offset up-and-left" bug).
-const PLAN_WIDTH = 860;
-const PLAN_HEIGHT = 620;
+// Placed devices/heatmap dots are children of that container, so they inherit
+// the transform automatically and must be positioned in raw logical units.
+// Do NOT apply scale here too, or it gets applied twice.
+let PLAN_WIDTH = SCENARIOS[0].planWidth;
+let PLAN_HEIGHT = SCENARIOS[0].planHeight;
+
+// Swap the floorplan image + logical dimensions + toolbar text for a scenario.
+// Shared by both views. Caller is responsible for re-fitting the viewport.
+function applyScenarioAssets(scenario) {
+  PLAN_WIDTH = scenario.planWidth;
+  PLAN_HEIGHT = scenario.planHeight;
+
+  const img = document.getElementById('floorplan-img');
+  img.src = scenario.floorplan;
+  img.style.width = scenario.planWidth + 'px';
+  img.style.height = scenario.planHeight + 'px';
+
+  const title = document.getElementById('scenario-title');
+  if (title) title.textContent = scenario.title;
+  const instructions = document.getElementById('scenario-instructions');
+  if (instructions) instructions.textContent = scenario.instructions;
+
+  updateScenarioProgress();
+}
+
+// "Scenario X of N" text + dots, on whichever elements the page has.
+function updateScenarioProgress() {
+  const label = document.getElementById('scenario-progress');
+  if (label) {
+    label.textContent = sessionIsComplete()
+      ? 'Session complete'
+      : 'Scenario ' + (scenarioIndex + 1) + ' of ' + SCENARIOS.length;
+  }
+  document.querySelectorAll('.progress-dots').forEach(dotsEl => {
+    dotsEl.innerHTML = '';
+    SCENARIOS.forEach((s, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'dot' +
+        (i < scenarioIndex ? ' done' : '') +
+        (i === scenarioIndex ? ' current' : '');
+      dotsEl.appendChild(dot);
+    });
+  });
+}
 
 // Screen/pointer position → logical plan units.
 // img.getBoundingClientRect() reflects the POST-transform size/position, so
@@ -61,8 +177,8 @@ function clientToSvg(clientX, clientY) {
 }
 
 // Logical plan units → position inside the (untransformed) container.
-// The image sits at its natural 860×620 size at the container's origin before
-// any transform, so logical units map 1:1 to container-local pixels. The
+// The image sits at its natural size at the container's origin before any
+// transform, so logical units map 1:1 to container-local pixels. The
 // container's own CSS transform then scales/pans the device along with the image.
 function svgToContainerPx(x, y) {
   return { left: x, top: y };

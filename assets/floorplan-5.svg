@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 620">
+  <defs>
+    <pattern id="offlimits" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="12" stroke="#ffffff" stroke-width="1.5" opacity="0.22"/>
+    </pattern>
+    <style>
+      .wall {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 7px;
+        stroke-linecap: butt;
+        stroke-miterlimit: 10;
+      }
+      .open {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 2px;
+        stroke-miterlimit: 10;
+        stroke-dasharray: 9 9;
+      }
+      .lbl {
+        fill: #fff;
+        font-family: NunitoSans-12ptExtraLight, 'Nunito Sans';
+        font-size: 26.37px;
+        font-variation-settings: 'wght' 200, 'wdth' 100, 'opsz' 12, 'YTLC' 500;
+        font-weight: 200;
+      }
+      .lbl-sm {
+        fill: #fff;
+        font-family: NunitoSans-12ptExtraLight, 'Nunito Sans';
+        font-size: 15px;
+        font-weight: 200;
+        letter-spacing: 0.14em;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <!-- outer shell -->
+    <rect class="wall" x="20" y="20" width="820" height="580"/>
+
+    <!-- off-limits fills (behind walls) -->
+    <rect fill="url(#offlimits)" x="560" y="310" width="280" height="150"/>
+    <rect fill="url(#offlimits)" x="560" y="460" width="280" height="140"/>
+
+    <!-- horizontal divider, two door gaps -->
+    <polyline class="wall" points="20,310 150,310"/>
+    <polyline class="wall" points="200,310 600,310"/>
+    <polyline class="wall" points="650,310 840,310"/>
+
+    <!-- top row: kitchen | living | bed 1 -->
+    <polyline class="wall" points="320,20 320,140"/>
+    <polyline class="wall" points="320,190 320,310"/>
+    <polyline class="wall" points="580,20 580,140"/>
+    <polyline class="wall" points="580,190 580,310"/>
+
+    <!-- bottom row: bed 2 | bath | off-limits stack -->
+    <polyline class="wall" points="280,310 280,430"/>
+    <polyline class="wall" points="280,480 280,600"/>
+    <polyline class="wall" points="560,310 560,430"/>
+    <polyline class="wall" points="560,480 560,600"/>
+    <polyline class="wall" points="560,460 700,460"/>
+    <polyline class="wall" points="750,460 840,460"/>
+
+    <text class="lbl" transform="translate(105 175)">Kitchen</text>
+    <text class="lbl" transform="translate(385 175)">Living</text>
+    <text class="lbl" transform="translate(670 175)">Bed 1</text>
+    <text class="lbl" transform="translate(105 465)">Bed 2</text>
+    <text class="lbl" transform="translate(390 465)">Bath</text>
+
+    <text class="lbl" transform="translate(600 380)">Owner's Closet</text>
+    <text class="lbl-sm" transform="translate(600 405)">OFF-LIMITS</text>
+    <text class="lbl" transform="translate(630 530)">Utility</text>
+    <text class="lbl-sm" transform="translate(630 555)">OFF-LIMITS</text>
+  </g>
+</svg>

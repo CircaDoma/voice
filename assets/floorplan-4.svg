@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620">
+  <defs>
+    <style>
+      .wall {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 7px;
+        stroke-linecap: butt;
+        stroke-miterlimit: 10;
+      }
+      .open {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 2px;
+        stroke-miterlimit: 10;
+        stroke-dasharray: 9 9;
+      }
+      .lbl {
+        fill: #fff;
+        font-family: NunitoSans-12ptExtraLight, 'Nunito Sans';
+        font-size: 26.37px;
+        font-variation-settings: 'wght' 200, 'wdth' 100, 'opsz' 12, 'YTLC' 500;
+        font-weight: 200;
+      }
+      .lbl-sm {
+        fill: #fff;
+        font-family: NunitoSans-12ptExtraLight, 'Nunito Sans';
+        font-size: 18px;
+        font-weight: 200;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <!-- ── MAIN HOUSE ──────────────────────────────────────────── -->
+    <!-- shell, with back-door gap on the right wall (y 380–430) -->
+    <polyline class="wall" points="560,380 560,23.5 20,23.5 20,596.5 560,596.5 560,430"/>
+
+    <!-- horizontal divider, two door gaps -->
+    <polyline class="wall" points="20,300 120,300"/>
+    <polyline class="wall" points="170,300 400,300"/>
+    <polyline class="wall" points="450,300 560,300"/>
+
+    <!-- kitchen / living divider -->
+    <polyline class="wall" points="300,20 300,150"/>
+    <polyline class="wall" points="300,200 300,300"/>
+
+    <!-- bedroom / hall divider -->
+    <polyline class="wall" points="260,300 260,420"/>
+    <polyline class="wall" points="260,470 260,600"/>
+
+    <!-- bath below hall -->
+    <polyline class="wall" points="260,460 380,460"/>
+    <polyline class="wall" points="430,460 560,460"/>
+
+    <text class="lbl" transform="translate(100 170)">Kitchen</text>
+    <text class="lbl" transform="translate(360 170)">Living</text>
+    <text class="lbl" transform="translate(75 460)">Bedroom</text>
+    <text class="lbl" transform="translate(380 550)">Bath</text>
+    <text class="lbl-sm" transform="translate(370 390)">Hall</text>
+
+    <!-- ── PATIO (open air, dashed) ────────────────────────────── -->
+    <polyline class="open" x1="0" points="560,300 730,300 730,600 560,600"/>
+    <text class="lbl" transform="translate(600 460)">Patio</text>
+
+    <!-- ── DETACHED STUDIO ─────────────────────────────────────── -->
+    <!-- door gap on the left wall (y 430–480) faces the patio -->
+    <polyline class="wall" points="750,430 750,303.5 880,303.5 880,596.5 750,596.5 750,480"/>
+    <text class="lbl" transform="translate(775 460)">Studio</text>
+  </g>
+</svg>

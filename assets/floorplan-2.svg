@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 660">
+  <defs>
+    <style>
+      .wall {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 7px;
+        stroke-linecap: butt;
+        stroke-miterlimit: 10;
+      }
+      .open {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 2px;
+        stroke-miterlimit: 10;
+        stroke-dasharray: 9 9;
+      }
+      .thin {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 2px;
+        stroke-miterlimit: 10;
+      }
+      .lbl {
+        fill: #fff;
+        font-family: NunitoSans-12ptExtraLight, 'Nunito Sans';
+        font-size: 26.37px;
+        font-variation-settings: 'wght' 200, 'wdth' 100, 'opsz' 12, 'YTLC' 500;
+        font-weight: 200;
+      }
+      .lbl-sm {
+        fill: #fff;
+        font-family: NunitoSans-12ptExtraLight, 'Nunito Sans';
+        font-size: 18px;
+        font-weight: 200;
+      }
+      .floor-tag {
+        fill: #fff;
+        font-family: NunitoSans-12ptExtraLight, 'Nunito Sans';
+        font-size: 22px;
+        font-weight: 200;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <!-- ── FIRST FLOOR ─────────────────────────────────────────── -->
+    <text class="floor-tag" transform="translate(20 40)">FIRST FLOOR</text>
+    <rect class="wall" x="20" y="60" width="400" height="540"/>
+
+    <!-- horizontal divider with door gaps -->
+    <polyline class="wall" points="20,330 120,330"/>
+    <polyline class="wall" points="170,330 330,330"/>
+    <polyline class="wall" points="380,330 420,330"/>
+    <line class="open" x1="120" y1="330" x2="170" y2="330"/>
+
+    <!-- kitchen / dining divider -->
+    <polyline class="wall" points="220,60 220,180"/>
+    <polyline class="wall" points="220,230 220,330"/>
+
+    <!-- WC bottom-left -->
+    <polyline class="wall" points="20,470 110,470"/>
+    <polyline class="wall" points="110,470 110,510"/>
+    <polyline class="wall" points="110,555 110,600"/>
+
+    <!-- stairs bottom-right -->
+    <polyline class="wall" points="340,430 340,470"/>
+    <polyline class="wall" points="340,515 340,600"/>
+    <polyline class="wall" points="340,430 420,430"/>
+    <line class="thin" x1="340" y1="455" x2="420" y2="455"/>
+    <line class="thin" x1="340" y1="480" x2="420" y2="480"/>
+    <line class="thin" x1="340" y1="505" x2="420" y2="505"/>
+    <line class="thin" x1="340" y1="530" x2="420" y2="530"/>
+    <line class="thin" x1="340" y1="555" x2="420" y2="555"/>
+    <line class="thin" x1="340" y1="580" x2="420" y2="580"/>
+
+    <text class="lbl" transform="translate(60 130)">Kitchen</text>
+    <text class="lbl" transform="translate(262 130)">Dining</text>
+    <text class="lbl" transform="translate(120 420)">Living Room</text>
+    <text class="lbl-sm" transform="translate(45 545)">WC</text>
+    <text class="lbl-sm" transform="translate(348 420)">Stairs</text>
+
+    <!-- ── SECOND FLOOR ────────────────────────────────────────── -->
+    <text class="floor-tag" transform="translate(460 40)">SECOND FLOOR</text>
+    <rect class="wall" x="460" y="60" width="400" height="540"/>
+
+    <!-- horizontal divider with door gaps -->
+    <polyline class="wall" points="460,330 560,330"/>
+    <polyline class="wall" points="610,330 720,330"/>
+    <polyline class="wall" points="770,330 860,330"/>
+
+    <!-- primary / bed 2 divider -->
+    <polyline class="wall" points="660,60 660,180"/>
+    <polyline class="wall" points="660,230 660,330"/>
+
+    <!-- bath / landing / bed 3 dividers -->
+    <polyline class="wall" points="640,330 640,430"/>
+    <polyline class="wall" points="640,480 640,600"/>
+    <polyline class="wall" points="460,470 540,470"/>
+    <polyline class="wall" points="590,470 640,470"/>
+
+    <!-- stairs on landing (mirrors first floor) -->
+    <line class="thin" x1="460" y1="355" x2="540" y2="355"/>
+    <line class="thin" x1="460" y1="380" x2="540" y2="380"/>
+    <line class="thin" x1="460" y1="405" x2="540" y2="405"/>
+    <line class="thin" x1="460" y1="430" x2="540" y2="430"/>
+    <polyline class="thin" points="540,340 540,460"/>
+
+    <text class="lbl" transform="translate(485 130)">Primary Bed</text>
+    <text class="lbl" transform="translate(715 130)">Bed 2</text>
+    <text class="lbl" transform="translate(700 480)">Bed 3</text>
+    <text class="lbl" transform="translate(482 555)">Bath</text>
+    <text class="lbl-sm" transform="translate(552 400)">Landing</text>
+  </g>
+</svg>

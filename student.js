@@ -6,6 +6,11 @@ let hasSubmitted = false;
 let drag = null;
 let ghostEl = null;
 
+// Per-scenario localStorage keys — a placement in scenario 2 must never leak
+// into scenario 3 (or into a different session).
+function devicesKey() { return 'va_my_devices_' + sessionId + '_' + currentScenario().id; }
+function submittedKey() { return 'va_submitted_' + sessionId + '_' + currentScenario().id; }
+
 // ─── GHOST ELEMENT ───────────────────────────────────────────────────────────
 // A floating clone that follows the pointer during a drag. We draw it ourselves
 // (Pointer Events have no built-in drag image), which also means no hotspot offset.
@@ -163,19 +168,22 @@ function clearMyDevices() {
   document.getElementById('submitted-banner').style.display = 'none';
   document.getElementById('submit-btn').disabled = false;
   saveMyDevices();
-  localStorage.removeItem('va_submitted_' + sessionId);
+  localStorage.removeItem(submittedKey());
+  // Also pull this browser's submission for the CURRENT scenario, so the
+  // facilitator's heatmap doesn't keep a placement the student discarded.
+  submissionsRef(currentScenario()).child(clientId).remove().catch(() => {});
   updateSubmitBar();
   fitFloorplan();
 }
 
 function loadMyDevices() {
   try {
-    const saved = localStorage.getItem('va_my_devices_' + sessionId);
+    const saved = localStorage.getItem(devicesKey());
     if (saved) {
       myDevices = JSON.parse(saved);
       myDevices.forEach(d => renderDevice(d.id, d.x, d.y));
     }
-    const submitted = localStorage.getItem('va_submitted_' + sessionId);
+    const submitted = localStorage.getItem(submittedKey());
     if (submitted === 'true') {
       hasSubmitted = true;
       document.getElementById('submitted-banner').style.display = 'block';
@@ -186,7 +194,7 @@ function loadMyDevices() {
 }
 
 function saveMyDevices() {
-  localStorage.setItem('va_my_devices_' + sessionId, JSON.stringify(myDevices));
+  localStorage.setItem(devicesKey(), JSON.stringify(myDevices));
 }
 
 function updateSubmitBar() {
@@ -201,25 +209,104 @@ async function submitPlacement() {
     alert('Place at least one voice assistant before submitting.');
     return;
   }
+  const scenario = currentScenario();
   const submission = {
     sessionId,
+    scenarioId: scenario.id,
     devices: myDevices.map(d => ({ x: Math.round(d.x), y: Math.round(d.y) })),
     timestamp: Date.now()
   };
   try {
-    const db = firebase.database();
-    // Keyed by session/client: everyone in the session lands under the same
-    // session node (what the instructor listens to), but each browser keeps
-    // its own child. Re-submitting from the same browser updates in place.
-    await db.ref('submissions/' + sessionId + '/' + clientId).set(submission);
+    // Keyed by session/scenario/client: everyone in the session lands under
+    // the same scenario node (what the facilitator listens to), but each
+    // browser keeps its own child. Re-submitting from the same browser
+    // updates in place.
+    await submissionsRef(scenario).child(clientId).set(submission);
     hasSubmitted = true;
-    localStorage.setItem('va_submitted_' + sessionId, 'true');
+    localStorage.setItem(submittedKey(), 'true');
     document.getElementById('submitted-banner').style.display = 'block';
     document.getElementById('submit-btn').disabled = true;
+    showWaitOverlay();
   } catch(e) {
     alert('Could not save — check your connection and try again.');
     console.error(e);
   }
+}
+
+// ─── WAITING / COMPLETE OVERLAY ─────────────────────────────────────────────
+// Menti-style holding screen: shown after submitting, dismissed automatically
+// when the facilitator advances the scenario. Also doubles as the "all done"
+// screen at the end of the session.
+function showWaitOverlay() {
+  document.getElementById('wait-title').textContent = 'Placement submitted';
+  document.getElementById('wait-sub').textContent = 'Waiting for the facilitator to start the next scenario…';
+  document.getElementById('wait-edit-btn').style.display = '';
+  document.getElementById('wait-overlay').classList.add('show');
+  updateScenarioProgress();
+}
+
+// Shown while the facilitator's session exists but hasn't been started yet
+// (they're still on the big-code screen, before clicking Start Session) —
+// there's no scenarioIndex node in Firebase at all at that point. Distinct
+// from showWaitOverlay(): nothing's been submitted yet, so no Edit button and
+// no progress dots (there's no progress to show).
+function showNotStartedOverlay() {
+  document.getElementById('wait-title').textContent = "You're in!";
+  document.getElementById('wait-sub').textContent = 'Waiting for the facilitator to start the next scenario…';
+  document.getElementById('wait-edit-btn').style.display = 'none';
+  document.getElementById('wait-overlay').classList.add('show');
+}
+
+function showCompleteOverlay() {
+  document.getElementById('wait-title').textContent = 'Session complete';
+  document.getElementById('wait-sub').textContent = 'That\u2019s every scenario — thanks for participating.';
+  document.getElementById('wait-edit-btn').style.display = 'none';
+  document.getElementById('wait-overlay').classList.add('show');
+  updateScenarioProgress();
+}
+
+function hideWaitOverlay() {
+  document.getElementById('wait-overlay').classList.remove('show');
+}
+
+// "Edit my placement": reopen the current scenario. The previous submission
+// stays in Firebase and is overwritten in place on resubmit.
+function editPlacement() {
+  hasSubmitted = false;
+  localStorage.removeItem(submittedKey());
+  document.getElementById('submitted-banner').style.display = 'none';
+  document.getElementById('submit-btn').disabled = false;
+  hideWaitOverlay();
+  updateSubmitBar();
+}
+
+// ─── SCENARIO LOADING ───────────────────────────────────────────────────────
+// Called on page load and every time the facilitator advances. Tears down the
+// previous scenario's devices and restores any saved (but unsubmitted) work
+// for the new one.
+function loadScenario(idx) {
+  scenarioIndex = idx;
+
+  if (sessionIsComplete()) {
+    showCompleteOverlay();
+    return;
+  }
+
+  clearRenderedDevices();
+  myDevices = [];
+  hasSubmitted = false;
+  document.getElementById('submitted-banner').style.display = 'none';
+  document.getElementById('submit-btn').disabled = false;
+
+  applyScenarioAssets(currentScenario());
+  loadMyDevices();               // restores per-scenario saved state, if any
+
+  if (hasSubmitted) {
+    showWaitOverlay();           // e.g. page reload while waiting
+  } else {
+    hideWaitOverlay();
+  }
+
   fitFloorplan();
 }
 
@@ -418,6 +505,116 @@ window.matchMedia("(orientation: landscape)").addEventListener("change", () => {
   requestAnimationFrame(fitFloorplan);
 });
 
+// ─── SESSION GATE ───────────────────────────────────────────────────────────
+// The page no longer mints a private session on load. If the URL carries
+// ?session=CODE (the facilitator's join link), show a one-click confirm
+// screen; otherwise show the code-entry gate. Either way, a single click
+// (Join) is what starts the session — there's no separate Ready step
+// anymore. Everything that depends on sessionId — per-scenario localStorage
+// keys, Firebase writes, scenario sync — runs only after startStudentSession.
+function initStudentGate() {
+  const fromUrl = sessionFromUrl();
+  if (fromUrl) {
+    showLinkJoinGate(fromUrl);
+    return;
+  }
+
+  const gate = document.getElementById('session-gate');
+  const input = document.getElementById('session-input');
+  const err = document.getElementById('session-error');
+
+  // Prefill the last session this browser joined — handy when a student
+  // reopens the page mid-class.
+  const last = localStorage.getItem('va_last_session');
+  if (last) input.value = last;
+
+  function tryJoin() {
+    const code = input.value.trim().toUpperCase();
+    if (!code) {
+      err.textContent = 'Enter a session code.';
+      return;
+    }
+    err.textContent = '';
+    putSessionInUrl(code);
+    gate.classList.remove('active');
+    startStudentSession(code);
+  }
+
+  document.getElementById('session-join-btn').addEventListener('click', tryJoin);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryJoin(); });
+
+  gate.classList.add('active');
+  input.focus();
+}
+
+// When arriving via the facilitator's join link, the session code is already
+// known — there's nothing to type — but a click is still required before
+// marking live presence, same reasoning as the code-entry Join button: it's
+// an explicit "I'm here" signal, not just a page load. Shown on every load
+// (including reloads), since a reload drops the live presence connection
+// anyway.
+function showLinkJoinGate(sid) {
+  const gate = document.getElementById('link-join-gate');
+  const btn = document.getElementById('link-join-btn');
+  if (!gate || !btn) { startStudentSession(sid); return; }
+
+  gate.classList.add('active');
+  btn.onclick = () => {
+    gate.classList.remove('active');
+    startStudentSession(sid);
+  };
+}
+
+function startStudentSession(sid) {
+  setSession(sid);
+  localStorage.setItem('va_last_session', sid);
+
+  // Live presence, Menti-style: registered on Join, and auto-cleared the
+  // moment this browser disconnects (closed tab, lost connection, navigated
+  // away) via onDisconnect — so the facilitator's count reflects who's
+  // actually here right now, updating on both late joins and early leaves.
+  // set() must be registered before onDisconnect() would otherwise remove a
+  // node that was never written; ordering here (onDisconnect first, then
+  // set) matches Firebase's own recommended presence pattern.
+  const presenceRef = joinedRef(sid).child(clientId);
+  presenceRef.onDisconnect().remove();
+  presenceRef.set(true).catch(() => {});
+
+  const gate = document.getElementById('session-gate');
+  if (gate) gate.classList.remove('active');
+
+  // initScenarioSync fires immediately with the current index. A null index
+  // means the facilitator's session exists but hasn't been started yet (they
+  // are still on the big-code screen) — show the waiting screen rather than
+  // jumping into scenario 1. It fires again on every facilitator advance,
+  // which is what dismisses whichever waiting screen is showing.
+  initScenarioSync((idx) => {
+    if (idx === null) {
+      showNotStartedOverlay();
+      return;
+    }
+    if (idx !== scenarioIndex || !document.getElementById('floorplan-img').style.width) {
+      loadScenario(idx);
+    }
+  });
+}
+
+// Return to the code-entry gate (e.g. the student joined the wrong session).
+// A reload is the cleanest reset: it drops ?session= from the URL so the gate
+// shows again, and discards all in-memory state for the wrong session. The
+// gate prefills the last-used code, which the student can correct. Presence
+// is also cleared explicitly rather than relying on onDisconnect's timing —
+// this makes the facilitator's count drop right away instead of waiting on
+// the disconnect to be detected.
+function changeSession() {
+  if (sessionId) {
+    joinedRef(sessionId).child(clientId).remove().catch(() => {});
+  }
+  const u = new URL(window.location.href);
+  u.searchParams.delete('session');
+  window.location.href = u.href;
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────────────
 initSourceToken();
-loadMyDevices();
-fitFloorplan();
+initStudentGate();

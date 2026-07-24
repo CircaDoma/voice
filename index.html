@@ -10,16 +10,42 @@
 <link rel="stylesheet" href="styles.css">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="scenarios.js" defer></script>
 <script src="shared.js" defer></script>
 <script src="student.js" defer></script>
 </head>
 <body>
+<!-- SESSION GATE — shown until a session code is entered (skipped when the
+     page is opened with ?session=CODE, e.g. from the facilitator's join link) -->
+  <div class="gate" id="session-gate">
+    <div class="gate-inner">
+      <h1>Join a session</h1>
+      <p>Enter the session code from your instructor.</p>
+      <input class="gate-input" id="session-input" type="text" maxlength="4"
+             autocomplete="off" autocapitalize="characters" spellcheck="false"
+             placeholder="CODE">
+      <p class="gate-error" id="session-error"></p>
+      <button class="gate-btn" id="session-join-btn">Join</button>
+    </div>
+  </div>
+<!-- LINK JOIN GATE — shown when arriving via ?session=CODE (the session code
+     is already known, so there's nothing to type), on every load (including
+     reloads). The click is the "I'm here" signal that lights up the
+     facilitator's live ready counter — same single action the code-entry
+     Join button performs. -->
+  <div class="gate" id="link-join-gate">
+    <div class="gate-inner">
+      <h1>You're in!</h1>
+      <p>Click below to join the session.</p>
+      <button class="gate-btn" id="link-join-btn">Join</button>
+    </div>
+  </div>
 <!-- TOOLBAR AREA -->
   <div class="main">
     <div class="section toolBar">
       <div class="textcontainer">
-        <h1>Floorplan 1</h1>
-        <p>Drag the device to place it on the floorplan.</p>
+        <h1 id="scenario-title">Loading…</h1>
+        <p id="scenario-instructions">Drag the device to place it on the floorplan.</p>
       </div>
       <div class="container">
         <button class="btn" onclick="clearMyDevices()">
@@ -30,6 +56,7 @@
           <img src="assets/submit.svg" alt="Submit" draggable="false">
         </button>
       </div>
+      <button class="change-session-btn" onclick="changeSession()">Change session</button>
       <div class="submitted-banner" id="submitted-banner">Placement submitted!</div>
     </div>
 
@@ -43,8 +70,19 @@
 
     <div class="session-code">
       <span>Session <strong id="session-display">—</strong></span>
+      <span class="scenario-progress-label" id="scenario-progress">—</span>
     </div>
   </div>
+
+<!-- WAITING / COMPLETE OVERLAY (Menti-style holding screen) -->
+  <div class="wait-overlay" id="wait-overlay">
+    <img src="assets/device-icon.svg" class="wait-icon" draggable="false">
+    <h2 id="wait-title">Placement submitted</h2>
+    <p id="wait-sub">Waiting for the facilitator to start the next scenario…</p>
+    <div class="progress-dots"></div>
+    <button class="wait-edit-btn" id="wait-edit-btn" onclick="editPlacement()">Edit my placement</button>
+  </div>
+
   <div class="room-tooltip" id="room-tooltip"></div>
 </body>
 </html>

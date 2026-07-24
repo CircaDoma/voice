@@ -4,37 +4,27 @@
    truth for the shared layout. */
 
 /* Stats replace the device-token strip in the toolbar. */
-.stats-row {
-  padding: 1rem 0;
-  gap: 2rem;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-width: 64px;
-}
-
-.stat-num {
-  font-size: var(--fs-xl);
+/* ─── FLOATING SUBMISSION COUNTER ────────────────────────────────────────────
+   Unified X/Y readout (submissions / ready students), bottom-right of the
+   viewport. z-index sits below the .gate screens (50) so it's naturally
+   hidden behind the session picker / big-code overlay, and pointer-events
+   are off since it's a readout, not a control. Positioned above the
+   .session-code bar (~50px tall) rather than flush in the corner, so the
+   two don't overlap. */
+.submission-counter {
+  position: fixed;
+  bottom: 60px;
+  right: 20px;
+  z-index: 40;
+  background: var(--color-black);
+  border: 1px solid var(--color-gray);
+  border-radius: var(--radius-pill);
+  padding: 8px 18px;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
   font-weight: 700;
-  line-height: 1;
-}
-
-.stat-num.stat-room {
-  font-size: var(--fs-base);
-  font-weight: 600;
-  padding-top: 4px;
-}
-
-.stat-label {
-  font-size: var(--fs-xs);
-  color: var(--color-gray);
-  font-weight: 300;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  color: var(--color-white);
+  pointer-events: none;
 }
 
 /* Facilitator buttons are always visible (the student .btn class hides
@@ -60,6 +50,20 @@
 .ibtn.danger { border-color: var(--color-red); color: var(--color-red); }
 .ibtn.danger:hover { background: rgba(195, 32, 50, 0.15); }
 
+/* Icon-only variant: fixed circular touch target, icon centered. The SVGs
+   use fill="currentColor" so they automatically pick up whatever color the
+   button already has (white by default, red for .danger) — no separate
+   colored asset files needed per state. */
+.ibtn.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}
+.ibtn.icon-btn svg { display: block; }
+
 /* Heatmap dots live inside #floorplan-container, so they are positioned and
    sized in LOGICAL plan units (0..860 × 0..620) and inherit the container's
    pan/zoom transform — same rule as .placed-device. Do not size these in
@@ -72,8 +76,139 @@
   z-index: 5;
 }
 
-.join-hint {
+.join-hint-btn {
+  font-family: var(--font-sans);
   font-size: var(--fs-xs);
+  color: var(--color-gray);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+.join-hint-btn:hover { color: var(--color-white); }
+
+/* ─── SESSION PICKER / NEW-SESSION SCREENS ──────────────────────────────────
+   Shared .gate scaffolding lives in styles.css; only facilitator-specific
+   pieces (big code display, past-session list) are here. */
+.big-code-label {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: var(--fs-sm);
+  color: var(--color-gray);
+}
+
+.big-code {
+  font-size: clamp(4rem, 16vw, 9rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+/* Same big/bold treatment as .big-code, reused for the Sessions picker
+   title — kept as a separate class so styling either one doesn't
+   accidentally affect the other. */
+.gate-title-big {
+  font-size: clamp(4rem, 16vw, 9rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.big-code-url-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-gray);
+  background: var(--color-transparent);
+  color: var(--color-gray);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.big-code-url-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--color-white); }
+.big-code-url-btn svg { display: block; }
+
+.join-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xl);
+  color: var(--color-white);
+  font-weight: 700;
+}
+
+.past-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-height: 40vh;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+/* Each row is a flex pair: the open button (fills the row) and a delete
+   button. Two separate <button>s — a delete control nested inside the open
+   button would be invalid HTML and would fire both actions on one tap. */
+.session-item {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--color-gray);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.session-open {
+  font-family: var(--font-sans);
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  color: var(--color-white);
+  background: var(--color-transparent);
+  border: none;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+.session-open:hover { background: rgba(255, 255, 255, 0.1); }
+
+.session-delete {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-red);
+  background: var(--color-transparent);
+  border: none;
+  border-left: 1px solid var(--color-gray);
+  padding: 0 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.session-delete:hover { background: var(--color-red); color: var(--color-white); }
+
+.session-item-code {
+  font-size: var(--fs-base);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.session-item-date {
+  font-size: var(--fs-xs);
+  color: var(--color-gray);
+  font-weight: 300;
+}
+
+.gate-empty {
+  font-size: var(--fs-sm);
   color: var(--color-gray);
 }
 
@@ -87,3 +222,23 @@
     left: 200px; /* clear the sidebar toolbar */
   }
 }
+
+/* Scenario navigation status under the title. */
+.scenario-nav-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 0.5rem;
+}
+
+/* Primary action stands out from the utility buttons. */
+.ibtn.primary {
+  border-color: var(--color-white);
+  font-weight: 700;
+}
+.ibtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.ibtn:disabled:hover { background: var(--color-transparent); }
